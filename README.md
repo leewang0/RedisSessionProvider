@@ -9,8 +9,8 @@ It is worth noting that the RedisSessionStateProvider performs no locking of the
 
 Key features:
 
-1) only performs SET or DEL operations if the value has changed since it was retrieved from redis
-2) batches all SET and DEL operations when the Session is released (at the end of the request pipeline)
-3) configurable options for the ip and port number of your redis instance, as well as key-prefix in case you have multiple applications all using the same redis instance.
-4) JSON serialization format for easy reading of Session contents on the redis end, provided by the very fast ServiceStack.Text.JSONSerializer
-5) type-safe objects upon deserialization even though we are using JSON to store object data
+* only performs SET or DEL operations if the value has changed since it was retrieved from redis
+* batches all SET and DEL operations when the Session is released (at the end of the request pipeline)
+* configurable options for the ip and port number of your redis instance, as well as key-prefix in case you have multiple applications all using the same redis instance.
+* JSON serialization format for easy reading of Session contents on the redis end, provided by the very fast ServiceStack.Text.JSONSerializer
+* type-safe objects upon deserialization even though we are using JSON to store object data
