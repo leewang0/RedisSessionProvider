@@ -1,0 +1,5 @@
+/RedisSessionStateProvider/*.suo
+
+/RedisSessionStateProvider/*.user
+/RedisSessionStateProvider/obj
+/RedisSessionStateProvider/bin
