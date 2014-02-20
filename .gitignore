@@ -1,5 +1,6 @@
-/RedisSessionStateProvider/*.suo
+/RedisSessionProvider/*.suo
 
-/RedisSessionStateProvider/*.user
-/RedisSessionStateProvider/obj
-/RedisSessionStateProvider/bin
+/RedisSessionProvider/*.user
+/RedisSessionProvider/obj
+/RedisSessionProvider/bin
+/*.suo
