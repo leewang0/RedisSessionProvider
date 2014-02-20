@@ -10,6 +10,11 @@
 
     public static class RedisSerializationConfig
     {
+        static RedisSerializationConfig()
+        {
+            RedisSerializationConfig.SessionDataSerializer = new RedisJSONSerializer();
+        }
+
         /// <summary>
         /// Gets or sets the serializer that RedisSessionProvider uses to translate between
         ///     Redis-persisted string values and local Session object values

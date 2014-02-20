@@ -53,7 +53,7 @@
 
             if (string.IsNullOrEmpty(name))
             {
-                name = "RedisSessionStateStore";
+                name = "RedisSessionProvider";
             }
 
             // the base Provider class is a .NET pattern that allows for configurable persistence layers or "providers".
