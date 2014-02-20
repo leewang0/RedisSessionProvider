@@ -1,31 +1,39 @@
 RedisSessionProvider
 =========================
 
+RedisSessionProvider is a minimal class library that changes the behavior of ASP.NET's Session property 
+to efficiently persist data to a [Redis](http://redis.io) server.
+
 ## Key features:
 
 * .NET 4.5 library for storing Session data in Redis
-* stores .NET web Sessions as [Redis hashes](http://redis.io/commands#hash), with each Session key translating to a key in the Redish hash
-* only performs SET or DEL operations on hash keys if the value has changed since it was retrieved from Redis
+* ASP.NET web Sessions are stored as [Redis hashes](http://redis.io/commands#hash), with each Session\["key"\]
+translating to "key" in the Redish hash
+* only performs SET or DEL operations back to Redis if the value has changed
 * batches all SET and DEL operations when the Session is released (at the end of the request pipeline)
-* uses the [Booksleeve](https://code.google.com/p/booksleeve/) redis client, an awaitable library for asynchronous communication with Redis
+* uses the [Booksleeve](https://code.google.com/p/booksleeve/) redis client, an await-able library for asynchronous
+communication with Redis
 * many configurable options for the particulars of using your redis instance(s), see the options section below
 * JSON serialization format for easy reading of Session contents on the redis end, using Json.NET
-* already production-tested on a website that serves 25 million page visits a day
+* production-tested on [DateHookup](http://www.datehookup.com) a website that serves **25 million** page visits a day
 
 ## High-Level overview:
 
-This library exposes a custom [SessionStateStoreProviderBase](http://msdn.microsoft.com/en-us/library/ms178587.aspx), a 
+RedisSessionProvider is intended for new ASP.NET projects or existing sites running on .NET 4.5 that want to store
+user sessions in Redis as opposed to the built-in options. This library exposes a custom 
+[SessionStateStoreProviderBase](http://msdn.microsoft.com/en-us/library/ms178587.aspx), a 
 Microsoft-created class within the System.Web.SessionState namespace that exists solely for the purpose of changing
 how your Session data is persisted. Because the .NET Session Module is not modified aside from this class, you should
 feel more confident that your website's pre-existing use of the Session keyword within webforms and MVC controllers
-will not exhibit any strange behavior by dropping this layer in. 
+will not exhibit any strange behavior by adding RedisSessionProvider.
 
 In addition, because Session data is persisted over the network to Redis nodes of your choosing, you will be able to
 truly load-balance your web application without any IP-affinity or concern that taking webserver nodes out of your 
-cluster will harm your existing user Sessions. Storing Session data in Redis gives you the out-of-process advantages
-of the [StateServer mession mode](http://msdn.microsoft.com/en-us/library/ms178586.ASPX), which keeps Sessions alive
+cluster will harm your existing user Sessions. Storing session data in Redis gives you the out-of-process advantages
+of the [StateServer session mode](http://msdn.microsoft.com/en-us/library/ms178586.ASPX), which keeps Sessions alive
 during application restarts, as well as the true-load-balancing behavior of the SQLServer mode without the overhead
-of maintaining a Session database in SQL Server.
+of maintaining a session-specific database in SQL Server. It will no longer matter which webserver your users hit,
+because your web application instances can look to Redis to figure out session state, leading to better scaling.
 
 ## Setting up RedisSessionProvider
 
@@ -42,14 +50,17 @@ done with the following modifications:
 		mode="Custom" 
 		customProvider="RedisSessionProvider">
 		<providers>
-			<add name="RedisSessionProvider" type="RedisSessionProvider.RedisSessionStateStoreProvider, RedisSessionProvider" />
+			<add 
+				name="RedisSessionProvider" 
+				type="RedisSessionProvider.RedisSessionStateStoreProvider, RedisSessionProvider" />
 		</providers>
 	</sessionState>
 
 ### Configuring your specifics
 
 The sessionState element only provides the entrypoint from your application into the RedisSessionProvider code. In
-order for RedisSessionProvider to know where to direct requests to Redis, you must set the following properties:
+order for RedisSessionProvider to know where to direct requests to Redis, you must set the following properties once
+in your application (Global.asax application_start is a good place for that):
 
 	using RedisSessionProvider.Config;
 	...
@@ -62,7 +73,7 @@ order for RedisSessionProvider to know where to direct requests to Redis, you mu
 		};
 	};
 
-Eeewww, why does it take a lambda function as opposed to a configuration class? It takes a lambda in case you want to
+Ewww, why does it take a lambda function as opposed to a configuration class? It takes a lambda in case you want to
 load-balance across multiple Redis instances, using the context as input. This way, you can dynamically choose your 
 Redis server to suit your needs. If you only have one server, a simple function like the example will suffice.
 
