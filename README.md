@@ -4,6 +4,9 @@ RedisSessionProvider
 RedisSessionProvider is a minimal class library that changes the behavior of ASP.NET's Session property 
 to efficiently persist data to a [Redis](http://redis.io) server.
 
+To install via NuGet, please go to the NuGet 
+[RedisSessionProvider package](https://www.nuget.org/packages/RedisSessionProvider) page
+
 ## Key features:
 
 * .NET 4.5 library for storing Session data in Redis

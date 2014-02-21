@@ -4,3 +4,5 @@
 /RedisSessionProvider/obj
 /RedisSessionProvider/bin
 /*.suo
+/RedisSessionProvider/RedisSessionProvider.1.0.0.0.nupkg
+/RedisSessionProvider/RedisSessionProvider.1.0.1.0.nupkg

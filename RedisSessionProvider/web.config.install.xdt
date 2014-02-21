@@ -1,0 +1,16 @@
+﻿<?xml version="1.0"?>
+<configuration xmlns:xdt="http://schemas.microsoft.com/XML-Document-Transform">
+  <system.web>
+    <sessionState 
+      mode="Custom" 
+      customProvider="RedisSessionStateStore"
+      xdt:Transform="SetAttributes(mode,customProvider)">      
+      <providers>
+        <add 
+          name="RedisSessionProvider" 
+          type="RedisSessionProvider.RedisSessionStateStoreProvider, RedisSessionProvider"
+          xdt:Transform="Insert" />
+      </providers>
+    </sessionState>
+  </system.web>
+</configuration>
