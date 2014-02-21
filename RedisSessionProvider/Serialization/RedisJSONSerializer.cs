@@ -226,12 +226,10 @@
         }
 
         /// <summary>
-        /// Serializes the entire Session's values into a dictionary of key-byte array pairs that correspond
-        ///     to the Session keys and their utf-8 encoded type and JSON data strings. This method is not
-        ///     normally used by RedisSessionProvider but may be helpful for debugging.
+        /// Converts the input dictionary into a dictionary of key to serialized string values
         /// </summary>
-        /// <param name="sessionItems">A dictionary containing all of the Session's keys and values</param>
-        /// <returns>The serialized dictionary that would be sent to Redis</returns>
+        /// <param name="sessionItems">A dictionary some or all of the Session's keys and values</param>
+        /// <returns>The serialized version of the input dictionary members</returns>
         public virtual Dictionary<string, byte[]> Serialize(Dictionary<string, object> sessionItems)
         {
             Dictionary<string, byte[]> serializedItems = new Dictionary<string, byte[]>();

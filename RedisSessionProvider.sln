@@ -3,6 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RedisSessionProvider", "RedisSessionProvider\RedisSessionProvider.csproj", "{618F58F3-4FAE-4B73-A7A9-1DAE471C9F71}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleUsageMVCApp", "SampleUsageMVCApp\SampleUsageMVCApp.csproj", "{BDD51741-8269-4551-A2C1-0F3D0988D3D4}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{0F2BF592-F564-496E-B8E7-0D9B824E7268}"
+	ProjectSection(SolutionItems) = preProject
+		.nuget\NuGet.Config = .nuget\NuGet.Config
+		.nuget\NuGet.exe = .nuget\NuGet.exe
+		.nuget\NuGet.targets = .nuget\NuGet.targets
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -13,6 +22,10 @@ Global
 		{618F58F3-4FAE-4B73-A7A9-1DAE471C9F71}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{618F58F3-4FAE-4B73-A7A9-1DAE471C9F71}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{618F58F3-4FAE-4B73-A7A9-1DAE471C9F71}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BDD51741-8269-4551-A2C1-0F3D0988D3D4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BDD51741-8269-4551-A2C1-0F3D0988D3D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BDD51741-8269-4551-A2C1-0F3D0988D3D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BDD51741-8269-4551-A2C1-0F3D0988D3D4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -342,6 +342,11 @@
                 catch (Exception e)
                 {
                     failedDeserialize = true;
+
+                    if (RedisSerializationConfig.SerializerExceptionLoggingDel != null)
+                    {
+                        RedisSerializationConfig.SerializerExceptionLoggingDel(e);
+                    }
                 }
 
                 if (failedDeserialize)

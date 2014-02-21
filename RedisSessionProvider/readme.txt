@@ -11,7 +11,7 @@ not, please modify your web.config as follows:
   <system.web>
     <sessionState 
       mode="Custom"
-      customProvider="RedisSessionStateStore">      
+      customProvider="RedisSessionProvider">      
       <providers>
         <add 
           name="RedisSessionProvider" 
