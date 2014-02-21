@@ -3,9 +3,26 @@
 
 Full documentation can be found at https://github.com/welegan/RedisSessionProvider
 
-Installing this NuGet package has already modified your web.config's sessionState element to have the appropriate settings
-to hook into RedisSessionProvider. However, in order for it to work you need to add the following line to your application
-startup, typically located within your global.asax file's Application_Start method:
+If you are using the NuGet package manager v2.6 and up, installing this NuGet package has already modified your 
+web.config's sessionState element to have the appropriate settings to hook into RedisSessionProvider. If the it has
+not, please modify your web.config as follows: 
+
+<configuration>
+  <system.web>
+    <sessionState 
+      mode="Custom"
+      customProvider="RedisSessionStateStore">      
+      <providers>
+        <add 
+          name="RedisSessionProvider" 
+          type="RedisSessionProvider.RedisSessionStateStoreProvider, RedisSessionProvider" />
+      </providers>
+    </sessionState>
+  </system.web>
+</configuration>
+
+The last step in order for RedisSessionProvider to work is adding the following line to your application startup, 
+typically located within your global.asax file's Application_Start method:
 
 using RedisSessionProvider.Config;
 

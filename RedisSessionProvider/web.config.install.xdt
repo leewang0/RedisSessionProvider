@@ -4,12 +4,11 @@
     <sessionState 
       mode="Custom" 
       customProvider="RedisSessionStateStore"
-      xdt:Transform="SetAttributes(mode,customProvider)">      
-      <providers>
+      xdt:Transform="SetAttributes()">      
+      <providers xdt:Transform="InsertIfMissing">
         <add 
           name="RedisSessionProvider" 
-          type="RedisSessionProvider.RedisSessionStateStoreProvider, RedisSessionProvider"
-          xdt:Transform="Insert" />
+          type="RedisSessionProvider.RedisSessionStateStoreProvider, RedisSessionProvider" />
       </providers>
     </sessionState>
   </system.web>
