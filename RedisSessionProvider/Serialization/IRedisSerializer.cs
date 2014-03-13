@@ -39,47 +39,6 @@
         object DeserializeOne(string objRaw);
 
         /// <summary>
-        /// Determines what objects have changed in the local Session during the current request. The 
-        ///     inputs to this method have several specific characteristics, with each one representing 
-        ///     a class of objects from the local Session that were changed in a particular manner. Read 
-        ///     each parameter description for details.
-        /// </summary>
-        /// <param name="confirmedChangedObjects">A dictionary of name-object pairs that contain all
-        ///     objects which were set in the Session during the serving of the current request. The return 
-        ///     value will be a superset of the serialized values of this dictionary.</param>
-        /// <param name="allObjects">A dictionary of name-object pairs that contain all objects which
-        ///     were ACCESSED from the Session during this request</param>
-        /// <param name="allObjectsOriginalState">A dictionary of name-string pairs that is exactly
-        ///     how the data looked in Redis BEFORE any changes in local Session. Generally, you should
-        ///     compare all serialized strings of objects from allObjects with their corresponding string
-        ///     in this dictionary, and add any strings that differ to the returned dictionary.
-        /// 
-        /// Why? Consider: Session["a"] = new List<string> {}; will correctly be in confirmedChangedObjects
-        ///     But Session["a"].Add("foo") will not because the reference did not change, even though the 
-        ///     contents at the reference did. The only way to generally check if the property is 
-        ///     dirty is to compare the serialized version of property "a" now with the value of "a"
-        ///     before the request happened. There are shortcuts to doing this comparison, for example
-        ///     if "a" key already exists in confirmedChangedObjects or deletedObjects this comparison is
-        ///     not necessary. In all other cases, you must check in your Serializer implementation or
-        ///     your Session properties may not be correct when modified by reference. However, since the 
-        ///     allObjects parameter only contains Session properties that were accessed during the current 
-        ///     request, you will only incur this penalty for each reference type actually used.</param>
-        /// <param name="deletedObjects">A list of property names that were deleted (either Session.Remove 
-        ///     or set to null) during the current request. This is an input to the method as an 
-        ///     optimization so you don't have to compare serialized forms. Removal from Redis happens 
-        ///     outside this method.</param>
-        /// <returns>Do NOT modify Redis in this method, since its purpose is merely to decide what keys 
-        ///     have changed and to provide their serialized values to the 
-        ///     RedisSessionProvider.RedisSessionStateStoreProvider class. The return value should be a
-        ///     dictionary of key to serialized byte array pairs that will be set in Redis by the
-        ///     class mentioned above, no deletes should be in the returned dictionary.</returns>
-        Dictionary<string, byte[]> SerializeWithDirtyChecking(
-            Dictionary<string, object> confirmedChangedObjects,
-            Dictionary<string, object> allObjects,
-            Dictionary<string, string> allObjectsOriginalState,
-            List<string> deletedObjects);
-
-        /// <summary>
         /// This method is not used by RedisSessionProvider, but its purpose should it be called is to take
         ///     the entire Session contents and return their serialized, byte array values.
         /// </summary>

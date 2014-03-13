@@ -1,6 +1,7 @@
 ﻿namespace RedisSessionProvider
 {
     using System;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Collections.Specialized;
     using System.Configuration;
@@ -34,6 +35,11 @@
         ///     the timeout property of the SessionState configuration element in web.config
         /// </summary>
         protected virtual int SessionTimeoutInSeconds { get; set; }
+
+        /// <summary>
+        /// The serializer from the RedisSerializationConfig to use
+        /// </summary>
+        private IRedisSerializer cereal;
 
         /// <summary>
         /// Initializes the RedisSessionStateStoreProvider, reading in settings from the web.config
@@ -72,6 +78,8 @@
                 throw new ConfigurationErrorsException(
                     "RedisConnectionConfig must have a GetRedisServerAddress delegate method for RedisSessionProvider to work.");
             }
+
+            this.cereal = RedisSerializationConfig.SessionDataSerializer;
         }
 
         /// <summary>
@@ -103,8 +111,7 @@
         /// <summary>
         /// Cleans up the RedisSessionProvider, however it DOES NOT clear Redis data since each
         ///     interaction with Redis already sets the expiration time on each Session ID key, which
-        ///     means that the Redis data should expire itself eventually anyways. Since there are no
-        ///     unmanaged resources in this class, this method is currently empty.
+        ///     means that the Redis data should expire itself eventually anyways.
         /// </summary>
         public override void Dispose()
         {
@@ -156,6 +163,14 @@
         ///     simultaneously</param>
         public override void ReleaseItemExclusive(HttpContext context, string id, object lockId)
         {
+            // if, for some reason, we are in this method we still want to record that we are no
+            //      longer going to use a session in local cache
+            string currentRedisHashId = RedisSessionStateStoreProvider.RedisHashIdFromSessionId(
+                    new HttpContextWrapper(context),
+                    id);
+
+            LocalSharedSessionDictionary sharedSessDict = new LocalSharedSessionDictionary();
+            sharedSessDict.GetSessionForEndRequest(currentRedisHashId);
         }
 
         /// <summary>
@@ -177,38 +192,26 @@
             lockId = null;
             actions = SessionStateActions.None;
 
-            string parsedRedisHashId = RedisSessionStateStoreProvider.RedisHashIdFromSessionId(
-                new HttpContextWrapper(context),
-                id);
-
-            RedisConnectionWrapper rConnWrap = new RedisConnectionWrapper(
-                RedisConnectionConfig.GetRedisServerAddress(
-                    new HttpContextWrapper(
-                        context)));
-
-            RedisConnection redisConn = rConnWrap.GetConnection();
-
             try
             {
-                Dictionary<string, byte[]> redisData = null;
+                string parsedRedisHashId = RedisSessionStateStoreProvider.RedisHashIdFromSessionId(
+                    new HttpContextWrapper(context),
+                    id);
 
-                using (var waiter = AsyncHelper.Wait)
-                {
-                    waiter.Run(redisConn.Hashes.GetAll(0, parsedRedisHashId),
-                        (getDataTask) =>
-                        {
-                            redisData = getDataTask;
-                        });
-                }
-
-                redisConn.Keys.Expire(0, parsedRedisHashId, this.SessionTimeoutInSeconds);
+                LocalSharedSessionDictionary sharedSessDict = new LocalSharedSessionDictionary();
+            
+                RedisSessionStateItemCollection items = sharedSessDict.GetSessionForBeginRequest(
+                    parsedRedisHashId,
+                    (redisKey) => {
+                        return this.GetItemFromRedis(redisKey, new HttpContextWrapper(context));
+                    });
 
                 return new SessionStateStoreData(
-                    new RedisSessionStateItemCollection(redisData),
+                    items,
                     SessionStateUtility.GetSessionStaticObjects(context),
                     this.SessionTimeoutInSeconds * 60);
             }
-            catch (Exception e)
+            catch(Exception e)
             {
                 if (RedisSessionConfig.SessionExceptionLoggingDel != null)
                 {
@@ -284,6 +287,9 @@
                     new HttpContextWrapper(context), 
                     id);
 
+                LocalSharedSessionDictionary sharedSessDict = new LocalSharedSessionDictionary();
+                sharedSessDict.GetSessionForEndRequest(currentRedisHashId);
+
                 if (redisItems != null)
                 {
                     Dictionary<string, object> setItems = new Dictionary<string, object>();
@@ -296,39 +302,21 @@
 
                     RedisConnection redisConn = rConnWrap.GetConnection();
 
-                    if (redisItems.ChangedKeysDict != null && redisItems.ChangedKeysDict.Count > 0)
+                    foreach (KeyValuePair<string, object> changedObj in 
+                        redisItems.GetChangedObjectsEnumerator())
                     {
-                        foreach (KeyValuePair<string, RedisSessionStateItemCollection.ActionAndValue> actItem in redisItems.ChangedKeysDict)
+                        if (changedObj.Value != null)
                         {
-                            if (actItem.Value is RedisSessionStateItemCollection.DeleteValue)
-                            {
-                                delItems.Add(actItem.Key);
-                            }
-                            else if (actItem.Value is RedisSessionStateItemCollection.SetValue)
-                            {
-                                // check again for nulls, we should not ever set a key to null. If it is null, just delete the key
-                                if (actItem.Value == null)
-                                {
-                                    delItems.Add(actItem.Key);
-                                }
-                                else
-                                {
-                                    setItems.Add(
-                                        actItem.Key,
-                                        actItem.Value.Value);
-                                }
-                            }
-                            else
-                            {
-                                throw new ArgumentException("Unknown changed item type from RedisSessionStateItemCollection.ChangedKeysDict");
-                            }
+                            setItems.Add(changedObj.Key, changedObj.Value);
+                        }
+                        else
+                        {
+                            delItems.Add(changedObj.Key);
                         }
                     }
 
                     this.SerializeToRedis(
                         setItems,
-                        redisItems.GetAccessedReferenceTypes(),
-                        redisItems.SerializedRawData,
                         delItems,
                         currentRedisHashId,
                         redisConn);
@@ -344,6 +332,47 @@
         }
 
         /// <summary>
+        /// Gets a hash from Redis and passes it to the constructor of RedisSessionStateItemCollection
+        /// </summary>
+        /// <param name="redisKey">The key of the Redis hash</param>
+        /// <param name="context">The HttpContext of the current web request</param>
+        /// <returns>An instance of RedisSessionStateItemCollection, may be empty if Redis call fails</returns>
+        private RedisSessionStateItemCollection GetItemFromRedis(string redisKey, HttpContextBase context)
+        {
+            RedisConnectionWrapper rConnWrap = new RedisConnectionWrapper(
+                RedisConnectionConfig.GetRedisServerAddress(context));
+
+            RedisConnection redisConn = rConnWrap.GetConnection();
+
+            try
+            {
+                Dictionary<string, byte[]> redisData = null;
+
+                using (var waiter = AsyncHelper.Wait)
+                {
+                    waiter.Run(redisConn.Hashes.GetAll(0, redisKey),
+                        (getDataTask) =>
+                        {
+                            redisData = getDataTask;
+                        });
+                }
+
+                redisConn.Keys.Expire(0, redisKey, this.SessionTimeoutInSeconds);
+
+                return new RedisSessionStateItemCollection(redisData, rConnWrap.RedisConnIdFromAddressAndPort);
+            }
+            catch (Exception e)
+            {
+                if (RedisSessionConfig.SessionExceptionLoggingDel != null)
+                {
+                    RedisSessionConfig.SessionExceptionLoggingDel(e);
+                }
+            }
+
+            return new RedisSessionStateItemCollection();
+        }
+
+        /// <summary>
         /// Helper method for serializing objects to Redis
         /// </summary>
         /// <param name="confirmedChangedObjects">keys and values that have definitely changed</param>
@@ -353,20 +382,12 @@
         /// <param name="currentRedisHashId">The current Redis key name</param>
         /// <param name="redisConn">A connection to Redis</param>
         private void SerializeToRedis(
-            Dictionary<string, object> confirmedChangedObjects,
-            Dictionary<string, object> allObjects,
-            Dictionary<string, string> allObjectsOriginalState,
-            List<string> deletedObjects,
+            Dictionary<string, object> setItems,            
+            List<string> delItems,
             string currentRedisHashId,
             RedisConnection redisConn)
         {
-            Dictionary<string, byte[]> changedObjs = RedisSerializationConfig.SessionDataSerializer.SerializeWithDirtyChecking(
-                                confirmedChangedObjects,
-                                allObjects,
-                                allObjectsOriginalState,
-                                deletedObjects);
-
-            if (changedObjs.Count > 0)
+            if (setItems.Count > 0)
             {
                 AsyncHelper.FireAndForget(
                     () =>
@@ -375,20 +396,20 @@
                             redisConn.Hashes.Set(
                                 0,
                                 currentRedisHashId,
-                                changedObjs),
+                                this.cereal.Serialize(setItems)),
 
                             // we set TTL here as well as in GET because there are some sessions that get        
                             //      orphaned after first set in redis and we want them to expire out
                             redisConn.Keys.Expire(0, currentRedisHashId, this.SessionTimeoutInSeconds));
                     });
             }
-            if (deletedObjects.Count > 0)
+            if (delItems.Count > 0)
             {
                 AsyncHelper.FireAndForget(
                     () => redisConn.Hashes.Remove(
                         0,
                         currentRedisHashId,
-                        deletedObjects.ToArray()));
+                        delItems.ToArray()));
 
                 // no need to set TTL again because we are just deleting items, ergo there had to have been
                 //      items to get in the first place ergo we would have set TTL during session get

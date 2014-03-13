@@ -13,6 +13,7 @@ namespace SampleUsageMVCApp.Controllers
         public ActionResult Index()
         {
             int curCount = 0;
+            int listCount = 0;
 
             if (this.Session["count"] != null)
             {
@@ -21,7 +22,28 @@ namespace SampleUsageMVCApp.Controllers
 
             this.Session["count"] = curCount + 1;
 
-            return Content("Hello world: " + curCount, "text/html");
+            List<byte> sessList = this.Session["listCount"] as List<byte>;
+
+            if (sessList != null)
+            {
+                listCount = sessList.Count;
+                sessList.Add(0);
+            }
+            else
+            {
+                this.Session["listCount"] = new List<byte> { 0 };
+            }
+
+            var x = this.Session["count"];
+
+
+
+            return Content(
+                string.Format(
+                    "<div>Count: {0}</div><div>List Count: {1}</div>",
+                    curCount,
+                    listCount), 
+                "text/html");
         }
     }
 }

@@ -13,6 +13,11 @@
     /// </summary>
     public static class RedisSessionConfig
     {
+        static RedisSessionConfig()
+        {
+            RedisSessionConfig.SessionAccessConcurrencyLevel = 1;
+        }
+
         /// <summary>
         /// A delegate that is called when RedisSessionProvider.RedisSessionStateStoreProvider encounters
         ///     an error during the retrieval or setting of a Session
@@ -25,5 +30,11 @@
         ///     be fine if your Redis server is specifically used only for web Sessions within one app.
         /// </summary>
         public static Func<HttpContextBase, string, string> RedisKeyFromSessionIdDel { get; set; }
+
+        /// <summary>
+        /// Gets or sets the expected number of threads that will simultaneously try to access a session,
+        ///     defaults to 1
+        /// </summary>
+        public static int SessionAccessConcurrencyLevel { get; set; }
     }
 }

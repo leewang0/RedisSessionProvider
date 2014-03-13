@@ -28,5 +28,12 @@
         ///     commands.
         /// </summary>
         public static Action<string, int> LogRedisCommandsReceivedDel { get; set; }
+
+        /// <summary>
+        /// Gets or sets a function to call every time data is pulled from Redis, where the first
+        ///     parameter is the connection name and the second parameter is the size in bytes
+        ///     of the data retrieved.
+        /// </summary>
+        public static Action<string, int> LogRedisSessionSize { get; set; }
     }
 }

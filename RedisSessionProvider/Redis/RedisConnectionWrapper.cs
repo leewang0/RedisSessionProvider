@@ -130,7 +130,10 @@
             return conn;
         }
 
-        private string RedisConnIdFromAddressAndPort
+        /// <summary>
+        /// Gets a string uniquely identifying the connection from hostname and port number
+        /// </summary>
+        internal string RedisConnIdFromAddressAndPort
         {
             get
             {
