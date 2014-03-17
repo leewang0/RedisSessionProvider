@@ -9,3 +9,4 @@
 /SampleUsageMVCApp/bin
 /SampleUsageMVCApp/obj
 /SampleUsageMVCApp/SampleUsageMVCApp.csproj.user
+/RedisSessionProvider/*.nupkg

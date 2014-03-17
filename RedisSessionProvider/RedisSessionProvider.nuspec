@@ -10,7 +10,12 @@
     <projectUrl>https://github.com/welegan/RedisSessionProvider</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
-    <releaseNotes>Initial Release</releaseNotes>
+    <releaseNotes>
+      V1.1: Updated to provide better multi-threaded behavior, now using a shared local cache as a middle layer 
+        between request and Redis
+      
+      V1.0: Initial Release, see https://github.com/welegan/RedisSessionProvider for details
+    </releaseNotes>
     <copyright>Copyright 2014</copyright>
     <tags>SessionState, Session, SessionProvider, Redis</tags>
     <dependencies>
