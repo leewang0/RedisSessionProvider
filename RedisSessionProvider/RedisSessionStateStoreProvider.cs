@@ -281,14 +281,13 @@
         {
             try
             {
-                RedisSessionStateItemCollection redisItems = item.Items as RedisSessionStateItemCollection;
-
                 string currentRedisHashId = RedisSessionStateStoreProvider.RedisHashIdFromSessionId(
                     new HttpContextWrapper(context), 
                     id);
 
                 LocalSharedSessionDictionary sharedSessDict = new LocalSharedSessionDictionary();
-                sharedSessDict.GetSessionForEndRequest(currentRedisHashId);
+                RedisSessionStateItemCollection redisItems = 
+                    sharedSessDict.GetSessionForEndRequest(currentRedisHashId);
 
                 if (redisItems != null)
                 {

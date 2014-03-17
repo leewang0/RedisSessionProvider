@@ -1,0 +1,112 @@
+﻿@model TestPageModel
+@using SampleUsageMVCApp.Models
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html xmlns:ng="http://angularjs.org" id="ng-app" data-ng-app="testApp">
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>TestView</title>
+    <script type="text/ecmascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.14/angular.min.js"></script>
+    <script type="text/javascript">
+        angular.module("testApp", [])
+            .controller("countsController", function ($scope, $http) {
+                $scope.count = @Model.Count;
+                $scope.safeCount = @Model.SafeCount;
+                $scope.listCount = @Model.ListCount;
+                $scope.debugMessages = [];
+
+                $scope.RunIncrements = function(iterations){
+                    if(!angular.isNumber(iterations)) {
+                        iterations = 1;
+                    }
+
+                    for(var x = 0; x < iterations; x++)
+                    {
+                        $scope.debugMessages.push("Calling server increment 1");
+                        $http.get("/Home/IncrementCounts?cacheBust=" + $scope.RandomNumericString(5))
+                            .success(function(data){
+                                $scope.UpdateCounts(data);
+                            });
+                    }
+                };
+
+                $scope.RandomNumericString = function (length) {
+                    var result = "";
+                    for (var i = 0; i < length; i++)
+                    {
+                        result += Math.floor(Math.random() * 10);
+                    }
+                    return result;
+                };
+
+                // js functions run single-threaded, and functions always run to completion before
+                //      the next one is started so this should be safe even though the responses
+                //      are not guaranteed to be in order. But since we are only incrementing,
+                //      the largest value returned from the server should be the latest
+                $scope.UpdateCounts = function(serverSideCountsData) {
+                    var countAdded = false;
+                    var safeCountAdded = false;
+                    var listCountAdded = false;
+                    if($scope.count < serverSideCountsData.count) {
+                        $scope.count = serverSideCountsData.count;
+                        countAdded = true;
+                    }
+                    if($scope.safeCount < serverSideCountsData.safeCount) {
+                        $scope.safeCount = serverSideCountsData.safeCount;
+                        safeCountAdded = true;
+                    }
+                    if($scope.listCount < serverSideCountsData.listCount) {
+                        $scope.listCount = serverSideCountsData.listCount;
+                        listCountAdded = true;
+                    }
+
+                    $scope.debugMessages.push(
+                        "Response received, in order: " + 
+                        (countAdded && safeCountAdded && listCountAdded) + 
+                        ", values: " + serverSideCountsData.count + ", " +
+                        serverSideCountsData.safeCount + ", " +
+                        serverSideCountsData.listCount);
+                };
+            });
+    </script>
+</head>
+<body>
+    <div>
+        <h3>Initial Values:</h3>
+        <div>
+            "Count" started at: @Model.Count
+        </div>
+        <div>
+            "Safe Count" started at: @Model.SafeCount
+        </div>
+        <div>
+            "List Count" started at @Model.ListCount
+        </div>
+    </div>
+
+    <div data-ng-controller="countsController">
+        <h3>Current Values:</h3>
+        <div>
+            Count: {{ count }}
+        </div>
+        <div>
+            Safe Count: {{ safeCount }}
+        </div>
+        <div>
+            List Count: {{ listCount }}
+        </div>
+
+        <input type="button" value="Increment 1" data-ng-click="RunIncrements(1)" />
+        <input type="button" value="Increment 5" data-ng-click="RunIncrements(5)" />
+        <input type="button" value="Increment 10" data-ng-click="RunIncrements(10)" />
+
+        <h3>Debug Messages:</h3>
+        <ul>
+            <li data-ng-repeat="message in debugMessages track by $index">{{ message }}</li>
+        </ul>
+    </div>
+</body>
+</html>

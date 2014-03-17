@@ -27,11 +27,12 @@
 
         private static SysTimer cacheFreshnessTimer;
 
-        private static int cacheItemExpirationAgeMillis = 5000;
+        private static int cacheItemExpirationAgeMillis = 120000;
+        private static int checkCacheFreshnessInterval = 5000;
 
         static LocalSharedSessionDictionary()
         {
-            cacheFreshnessTimer = new SysTimer(cacheItemExpirationAgeMillis);
+            cacheFreshnessTimer = new SysTimer(checkCacheFreshnessInterval);
             cacheFreshnessTimer.Elapsed += EnsureLocalCacheFreshness;
             cacheFreshnessTimer.Start();
         }
@@ -46,7 +47,8 @@
 
                 foreach (KeyValuePair<string, SessionAndRefCount> val in LocalSharedSessionDictionary.localCache)
                 {
-                    if (val.Value.LastAccess.AddMilliseconds(cacheItemExpirationAgeMillis) < now)
+                    if (val.Value.LastAccess.AddMilliseconds(cacheItemExpirationAgeMillis) < now ||
+                        val.Value.RequestReferences <= 0)
                     {
                         expiredKeys.Add(val.Key);
                     }
@@ -113,17 +115,9 @@
             SessionAndRefCount sessAndCount;
             if (LocalSharedSessionDictionary.localCache.TryGetValue(redisHashId, out sessAndCount))
             {
-                // atomically decrease ref count
+                // atomically decrease ref count, and check to see if any requests outstanding
                 Interlocked.Decrement(ref sessAndCount.RequestReferences);
-
-                // no reason why it should be less than 0, but why not to be safe?
-                //      when this is true, remove it from the localCache so that the next
-                //      request fetches from Redis
-                if (sessAndCount.RequestReferences <= 0)
-                {
-                    SessionAndRefCount removed;
-                    LocalSharedSessionDictionary.localCache.TryRemove(redisHashId, out removed);
-                }
+                // the timer will clear it out within the next 5 seconds if the count goes to 0
 
                 return sessAndCount.Sess;
             }

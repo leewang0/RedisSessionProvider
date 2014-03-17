@@ -1,49 +1,97 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Web.Mvc;
-
-namespace SampleUsageMVCApp.Controllers
+﻿namespace SampleUsageMVCApp.Controllers
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading;
+    using System.Web;
+    using System.Web.Mvc;
+
+    using Models;
+
     public class HomeController : Controller
     {
+        private static readonly object listIncrLock = new object();
+
         //
         // GET: /Home/
         public ActionResult Index()
         {
-            int curCount = 0;
-            int listCount = 0;
+            this.ResetCounts();
 
-            if (this.Session["count"] != null)
-            {
-                curCount = (int)this.Session["count"];
-            }
+            return View("TestView", this.GetModel());
+        }
 
-            this.Session["count"] = curCount + 1;
-
-            List<byte> sessList = this.Session["listCount"] as List<byte>;
-
-            if (sessList != null)
-            {
-                listCount = sessList.Count;
-                sessList.Add(0);
-            }
-            else
-            {
-                this.Session["listCount"] = new List<byte> { 0 };
-            }
-
-            var x = this.Session["count"];
-
-
+        public ActionResult IncrementCounts()
+        {
+            TestPageModel mdl = this.GetModel();
 
             return Content(
                 string.Format(
-                    "<div>Count: {0}</div><div>List Count: {1}</div>",
-                    curCount,
-                    listCount), 
-                "text/html");
+                    "{{ \"count\": {0}, \"safeCount\": {1}, \"listCount\": {2} }}",
+                    mdl.Count,
+                    mdl.SafeCount,
+                    mdl.ListCount), 
+                "application/json");
+        }
+
+        private void ResetCounts()
+        {
+            this.Session["count"] = 0;
+            this.Session["safeCount"] = new SafelyIncrementableIntHolder();
+            this.Session["listCount"] = new List<byte>();
+        }
+
+        private TestPageModel GetModel()
+        {
+            this.Session["count"] = (int)this.Session["count"] + 1;
+
+
+            SafelyIncrementableIntHolder safeInt = this.Session["safeCount"] as SafelyIncrementableIntHolder;
+            safeInt.Increment();
+
+            
+            List<byte> sessList = this.Session["listCount"] as List<byte>;
+            lock (HomeController.listIncrLock)
+            {
+                sessList.Add(0);
+            }
+
+            
+            TestPageModel mdl = new TestPageModel
+            {
+                Count = (int)this.Session["count"],
+                SafeCount = safeInt.Value,
+                ListCount = sessList.Count
+            };
+
+            return mdl;
+        }
+
+        class SafelyIncrementableIntHolder
+        {
+            public void Increment()
+            {
+                Interlocked.Increment(ref this.internalVal);
+            }
+
+            private int internalVal = 0;
+
+            public int Value 
+            { 
+                get 
+                {
+                    return internalVal;
+                }
+                set
+                {
+                    // if not initialized
+                    if (this.internalVal == 0)
+                    {
+                        this.internalVal = value;
+                    }
+                }
+            }
         }
     }
 }
