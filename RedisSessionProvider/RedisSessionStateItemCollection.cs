@@ -132,8 +132,8 @@
 
                     byteDataTotal += sessDataEntry.Value.Length;
                 }
-                
             }
+
             this.ChangedKeysDict = new ConcurrentDictionary<string, ActionAndValue>();
             this.AccessedKeys = new HashSet<string>();
 
@@ -144,6 +144,11 @@
             }
 
             this.cereal = RedisSerializationConfig.SessionDataSerializer;
+
+            if(byteDataTotal > RedisConnectionConfig.MaxSessionByteSize)
+            {
+                RedisConnectionConfig.RedisSessionSizeExceededHandler(this, byteDataTotal);
+            }
         }
 
 

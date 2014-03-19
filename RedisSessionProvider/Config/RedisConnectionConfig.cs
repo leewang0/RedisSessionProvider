@@ -9,6 +9,12 @@
 
     public static class RedisConnectionConfig
     {
+        static RedisConnectionConfig()
+        {
+            RedisConnectionConfig.MaxSessionByteSize = 30000;
+            RedisConnectionConfig.RedisSessionSizeExceededHandler = RedisConnectionConfig.ClearRedisItems;
+        }
+
         /// <summary>
         /// Gets or sets a delegate method which takes in an HttpContext and returns the necessary
         ///     hostname and port information for the appropriate redis server that contains the
@@ -35,5 +41,21 @@
         ///     of the data retrieved.
         /// </summary>
         public static Action<string, int> LogRedisSessionSize { get; set; }
+
+        /// <summary>
+        /// Gets or sets the delegate that handles when the Session goes over the max allowed size. Defaults
+        ///     to clearing the items.
+        /// </summary>
+        public static Action<RedisSessionStateItemCollection, int> RedisSessionSizeExceededHandler { get; set; }
+
+        private static void ClearRedisItems(RedisSessionStateItemCollection items, int size)
+        {
+            items.Clear();
+        }
+
+        /// <summary>
+        /// Gets or sets the maximum supported session size, in bytes. Defaults to 30000, or 30kb
+        /// </summary>
+        public static int MaxSessionByteSize { get; set; }
     }
 }
