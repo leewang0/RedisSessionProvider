@@ -23,17 +23,36 @@
         public static Func<HttpContextBase, RedisConnectionParameters> GetRedisServerAddress = null;
 
         /// <summary>
-        /// Gets or sets the function to call for logging how many commands were sent to redis. The first
-        ///     parameter is the connection name and the second parameter is the number of commands.
+        /// Gets or sets a logging delegate that takes as input the server ip and port of the connection used as
+        ///     a string and the number of total redis messages to it as a long
         /// </summary>
-        public static Action<string, int> LogRedisCommandsSentDel { get; set; }
+        public static Action<string, long> LogConnectionActionsCountDel { get; set; }
 
-        /// <summary>
-        /// Gets or sets the function to call for logging how many commands were received from redis 
-        ///     The first parameter is the connection name and the second parameter is the number of 
-        ///     commands.
-        /// </summary>
-        public static Action<string, int> LogRedisCommandsReceivedDel { get; set; }
+        [Obsolete("Due to a change in Redis clients starting in v1.2.0, RedisSessionProvider now only" + 
+            " logs total actions taken (both sends and receives) via the LogConnectionActionsCountDel property")]
+        public static Action<string, int> LogRedisCommandsSentDel 
+        {
+            get
+            {
+                return null;
+            }
+            set
+            {
+            }
+        }
+
+        [Obsolete("Due to a change in Redis clients starting in v1.2.0, RedisSessionProvider now only" +
+            " logs total actions taken (both sends and receives) via the LogConnectionActionsCountDel property")]
+        public static Action<string, int> LogRedisCommandsReceivedDel
+        {
+            get
+            {
+                return null;
+            }
+            set
+            {
+            }
+        }
 
         /// <summary>
         /// Gets or sets a function to call every time data is pulled from Redis, where the first

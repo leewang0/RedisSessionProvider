@@ -6,6 +6,8 @@
     using System.Text;
     using System.Threading.Tasks;
 
+    using StackExchange.Redis;
+
     /// <summary>
     /// An interface containing the methods used by the RedisSessionProvider to convert objects to strings
     ///     or byte arrays, to be written to Redis. Currently, RedisSessionProvider only calls DeserializeOne
@@ -22,7 +24,7 @@
         /// </summary>
         /// <param name="redisHashDataRaw">The key-value pairs directly from Redis</param>
         /// <returns>A list of name-object pairs</returns>
-        List<KeyValuePair<string, object>> Deserialize(Dictionary<string, string> redisHashDataRaw);
+        List<KeyValuePair<string, object>> Deserialize(KeyValuePair<RedisValue, RedisValue>[] redisHashDataRaw);
 
         /// <summary>
         /// Deserializes one byte array into the corresponding, correctly typed object
@@ -46,7 +48,7 @@
         /// <param name="redisSetItemsOriginal">The entire contents of the current Session</param>
         /// <returns>A dictionary of name to serialized byte array values corresponding to the input
         ///     redisSetItemsOriginal</returns>
-        Dictionary<string, byte[]> Serialize(Dictionary<string, object> redisSetItemsOriginal);
+        KeyValuePair<RedisValue, RedisValue>[] Serialize(List<KeyValuePair<string, object>> redisSetItemsOriginal);
 
         /// <summary>
         /// This method serializes one key-object pair into a string. RedisSessionProvider then uses

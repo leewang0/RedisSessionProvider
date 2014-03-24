@@ -11,9 +11,9 @@
     using System.Web;
     using System.Web.SessionState;
 
-    using BookSleeve;
     using Newtonsoft.Json;
     using RedisSessionProvider.Config;
+    using StackExchange.Redis;
 
     /// <summary>
     /// This serializer encodes/decodes Session values into/from JSON for Redis persistence, using
@@ -75,7 +75,7 @@
         ///     corresponding to Session property and value being a JSON encoded string with type info
         ///     of the original object</param>
         /// <returns>A list of key-object pairs of each entry in the input dictionary</returns>
-        public virtual List<KeyValuePair<string, object>> Deserialize(Dictionary<string, string> redisHashDataRaw)
+        public virtual List<KeyValuePair<string, object>> Deserialize(KeyValuePair<RedisValue, RedisValue>[] redisHashDataRaw)
         {
             // process: for each key and value in raw data, convert byte[] field to json string and extract its type property
             //      then deserialize that type and add 
@@ -88,11 +88,11 @@
                 {
                     try
                     {
-                        object deserializedObj = this.DeserializeOne(keyFieldPair.Value);
+                        object deserializedObj = this.DeserializeOne(keyFieldPair.Value.ToString());
                         if (deserializedObj != null)
                         {
                             deserializedList.Add(new KeyValuePair<string, object>(
-                                keyFieldPair.Key,
+                                keyFieldPair.Key.ToString(),
                                 deserializedObj));
                         }
                     }
@@ -183,18 +183,21 @@
         /// </summary>
         /// <param name="sessionItems">A dictionary some or all of the Session's keys and values</param>
         /// <returns>The serialized version of the input dictionary members</returns>
-        public virtual Dictionary<string, byte[]> Serialize(Dictionary<string, object> sessionItems)
+        public virtual KeyValuePair<RedisValue, RedisValue>[] Serialize(
+            List<KeyValuePair<string, object>> sessionItems)
         {
-            Dictionary<string, byte[]> serializedItems = new Dictionary<string, byte[]>();
+            KeyValuePair<RedisValue, RedisValue>[] serializedItems = 
+                new KeyValuePair<RedisValue, RedisValue>[sessionItems.Count];
 
-            foreach (var changedItem in sessionItems)
+            for(int i = 0; i < sessionItems.Count; i++)
             {
                 try
                 {
-                    serializedItems.Add(
-                        changedItem.Key,
-                        Encoding.UTF8.GetBytes(
-                            this.SerializeOne(changedItem.Key, changedItem.Value)));
+                    serializedItems[i] = new KeyValuePair<RedisValue,RedisValue>(
+                        sessionItems[i].Key,
+                        this.SerializeOne(
+                            sessionItems[i].Key, 
+                            sessionItems[i].Value));
                 }
                 catch (Exception e)
                 {

@@ -13,11 +13,10 @@
     using System.Threading.Tasks;
     using System.Web;
     using System.Web.SessionState;
-
-    using AsyncBridge;
-    using BookSleeve;
+        
     using RedisSessionProvider.Config;
     using RedisSessionProvider.Serialization;
+    using StackExchange.Redis;
 
     /// <summary>
     /// This class holds the Session's items during the serving of a web request. It lazily deserializes items as they
@@ -45,20 +44,6 @@
         /// Gets or sets the dictionary that actually stores all of the items in the Session
         /// </summary>
         protected ConcurrentDictionary<string, object> Items { get; set; }
-
-        /// <summary>
-        /// Gets or sets a hashset of keys that have been looked at during this object's lifetime. This is a
-        ///     standard HashSet, not from the System.Collections.Concurrent namespace because we only ever
-        ///     call Add or Contains on it. In the case of Add/Add from two threads, the result is the same, a
-        ///     key will be there. In the case of Add/Contains from two threads, with the Contains going first,
-        ///     the extra key will be skipped, which is bad. However, the thread that called Add must itself
-        ///     eventually call Contains at the end of its web request to see if it needs to propogate back
-        ///     to Redis, so the accessed key will be inspected for changes eventually anyways. Contains/Contains
-        ///     will be fine as well, since neither will modify the collection. Thus, we (with great risk)
-        ///     stick to the non-thread-safe implementation, though this can easily be swapped out for a
-        ///     ConcurrentDictionary<string, byte> if need be.
-        /// </summary>
-        protected HashSet<string> AccessedKeys { get; set; }
         
         /// <summary>
         /// A lock object used to mutex the GetChangedObjectsEnumerator call, since we only want one
@@ -76,17 +61,12 @@
         /// Instantiates a new instance of the RedisSessionStateItemCollection class, with no values
         /// </summary>
         public RedisSessionStateItemCollection()
-            : this(null, null)
+            : this(null, null, 0)
         {
         }
 
-        /// <summary>
-        /// Instantiates a new instance of the RedisSessionStateItemCollection class, with data from
-        ///     Redis
-        /// </summary>
-        /// <param name="redisHashData">A dictionary of keys to byte array values from Redis. The
-        ///     byte array should be the output of the SerializeOne method from the configured 
-        ///     IRedisSerializer in RedisSerializationConfig</param>
+        [Obsolete("This constructor is no longer used within RedisSessionProvider, since moving to StackExchange.Redis"
+            + " as a redis client library returns arrays of keyvaluepairs instead of dictionaries for HashGetAll")]
         public RedisSessionStateItemCollection(Dictionary<string, byte[]> redisHashData, string redisConnName)
         {
             int byteDataTotal = 0;
@@ -113,7 +93,7 @@
                         Encoding.UTF8.GetString(sessDataEntry.Value)))
                     {
                         this.Items.TryAdd(
-                            sessDataEntry.Key, 
+                            sessDataEntry.Key,
                             new NotYetDeserializedPlaceholderValue());
                     }
 
@@ -122,7 +102,6 @@
             }
 
             this.ChangedKeysDict = new ConcurrentDictionary<string, ActionAndValue>();
-            this.AccessedKeys = new HashSet<string>();
 
             if (byteDataTotal != 0 && !string.IsNullOrEmpty(redisConnName) &&
                 RedisConnectionConfig.LogRedisSessionSize != null)
@@ -132,7 +111,69 @@
 
             this.cereal = RedisSerializationConfig.SessionDataSerializer;
 
-            if(byteDataTotal > RedisConnectionConfig.MaxSessionByteSize)
+            if (byteDataTotal > RedisConnectionConfig.MaxSessionByteSize)
+            {
+                RedisConnectionConfig.RedisSessionSizeExceededHandler(this, byteDataTotal);
+            }
+        }
+        
+        /// <summary>
+        /// Instantiates a new instance of the RedisSessionStateItemCollection class with data from
+        ///     Redis
+        /// </summary>
+        /// <param name="redisHashData">An array of keys to values from the redis hash</param>
+        /// <param name="redisConnName">The name of the connection from the redis connection wrapper</param>
+        public RedisSessionStateItemCollection(
+            KeyValuePair<RedisValue, RedisValue>[] redisHashData, 
+            string redisConnName,
+            byte constructorSignatureDifferentiator)
+        {
+            int byteDataTotal = 0;
+            int concLevel = RedisSessionConfig.SessionAccessConcurrencyLevel;
+            if (concLevel < 1)
+            {
+                concLevel = 1;
+            }
+
+            int numItems = 0;
+            if (redisHashData != null)
+            {
+                numItems = redisHashData.Length;
+            }
+
+            this.Items = new ConcurrentDictionary<string, object>(concLevel, numItems);
+            this.SerializedRawData = new ConcurrentDictionary<string, string>(concLevel, numItems);
+            if (redisHashData != null)
+            {
+                foreach (var sessDataEntry in redisHashData)
+                {
+                    string hashItemKey = sessDataEntry.Key.ToString();
+                    string hashItemValue = sessDataEntry.Value.ToString();
+
+                    if (this.SerializedRawData.TryAdd(
+                        hashItemKey,
+                        hashItemValue))
+                    {
+                        this.Items.TryAdd(
+                            hashItemKey,
+                            new NotYetDeserializedPlaceholderValue());
+                    }
+
+                    byteDataTotal += hashItemValue.Length;
+                }
+            }
+
+            this.ChangedKeysDict = new ConcurrentDictionary<string, ActionAndValue>();
+
+            if (byteDataTotal != 0 && !string.IsNullOrEmpty(redisConnName) &&
+                RedisConnectionConfig.LogRedisSessionSize != null)
+            {
+                RedisConnectionConfig.LogRedisSessionSize(redisConnName, byteDataTotal);
+            }
+
+            this.cereal = RedisSerializationConfig.SessionDataSerializer;
+
+            if (byteDataTotal > RedisConnectionConfig.MaxSessionByteSize)
             {
                 RedisConnectionConfig.RedisSessionSizeExceededHandler(this, byteDataTotal);
             }
@@ -372,9 +413,6 @@
         /// <returns>The deserialized object at the key, or null if it does not exist.</returns>
         protected object MemoizedDeserializeGet(string key)
         {
-            // Record that we are accessing this key
-            this.AccessedKeys.Add(key);
-
             object storedObj = null;
             if (this.Items.TryGetValue(key, out storedObj))
             {
@@ -541,39 +579,35 @@
                     }
 
                     // check each key that was accessed for changes
-                    foreach (string usedKey in this.AccessedKeys)
+                    foreach (KeyValuePair<string, object> itm in this.Items)
                     {
                         // only check keys that are not already in the changedObjs list
                         bool alreadyAdded = false;
                         foreach (KeyValuePair<string, object> markedItem in changedObjs)
                         {
-                            if (markedItem.Key == usedKey)
+                            if (markedItem.Key == itm.Key)
                             {
                                 alreadyAdded = true;
                                 break;
                             }
                         }
 
-                        if (!alreadyAdded)
+                        if (!alreadyAdded && !(itm.Value is NotYetDeserializedPlaceholderValue))
                         {
-                            object usedItem;
-                            if (this.Items.TryGetValue(usedKey, out usedItem))
+                            string serVal = this.cereal.SerializeOne(itm.Key, itm.Value);
+                            string origSerVal;
+                            if (this.SerializedRawData.TryGetValue(itm.Key, out origSerVal))
                             {
-                                string serVal = this.cereal.SerializeOne(usedKey, usedItem);
-                                string origSerVal;
-                                if (this.SerializedRawData.TryGetValue(usedKey, out origSerVal))
+                                if (serVal != origSerVal)
                                 {
-                                    if (serVal != origSerVal)
-                                    {
-                                        // object's value has changed, add to output list
-                                        changedObjs.Add(new KeyValuePair<string, object>(usedKey, usedItem));
+                                    // object's value has changed, add to output list
+                                    changedObjs.Add(new KeyValuePair<string, object>(itm.Key, itm.Value));
 
-                                        // and reset the original state of it to what it is now
-                                        this.SerializedRawData.TryUpdate(
-                                            usedKey,
-                                            serVal,
-                                            origSerVal);
-                                    }
+                                    // and reset the original state of it to what it is now
+                                    this.SerializedRawData.TryUpdate(
+                                        itm.Key,
+                                        serVal,
+                                        origSerVal);
                                 }
                             }
                         }

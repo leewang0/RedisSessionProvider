@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>StackExchange.Redis</id>
+    <version>1.0.219</version>
+    <title>StackExchange.Redis</title>
+    <authors>Stack Exchange inc.,  marc.gravell</authors>
+    <owners>Stack Exchange inc.,  marc.gravell</owners>
+    <licenseUrl>https://raw.github.com/StackExchange/StackExchange.Redis/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/StackExchange/StackExchange.Redis</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>High performance Redis client, incorporating both synchronous and asynchronous usage; the notional successor to BookSleeve</description>
+    <summary>Redis client library</summary>
+    <releaseNotes />
+    <copyright>Stack Exchange inc. 2014</copyright>
+    <language>en-US</language>
+    <tags>Async Redis NoSQL Client Distributed Cache PubSub Messaging</tags>
+  </metadata>
+</package>

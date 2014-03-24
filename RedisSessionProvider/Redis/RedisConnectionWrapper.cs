@@ -10,28 +10,22 @@
     using System.Timers;
     using System.Web;
 
-    using BookSleeve;
+    using StackExchange.Redis;
     using RedisSessionProvider.Config;
 
     public sealed class RedisConnectionWrapper
     {
-        private static ConcurrentDictionary<string, RedisConnection> RedisConnections = new ConcurrentDictionary<string, RedisConnection>();
-        private static Dictionary<string, Tuple<int, int>> RedisStats = new Dictionary<string, Tuple<int, int>>();
-
-        private static System.Timers.Timer connRefreshTimer;
-
+        private static Dictionary<string, ConnectionMultiplexer> RedisConnections =
+            new Dictionary<string, ConnectionMultiplexer>();
+        private static Dictionary<string, long> RedisStats =
+            new Dictionary<string, long>();
+        
         private static System.Timers.Timer connMessagesSentTimer;
-
-        private static object RedisOpenLock = new object();
-
+        
         private static object RedisCreateLock = new object();
 
         static RedisConnectionWrapper()
         {
-            connRefreshTimer = new System.Timers.Timer(10800000);
-            connRefreshTimer.Elapsed += RedisConnectionWrapper.KillAllConnections;
-            connRefreshTimer.Start();
-
             connMessagesSentTimer = new System.Timers.Timer(30000);
             connMessagesSentTimer.Elapsed += RedisConnectionWrapper.GetConnectionsMessagesSent;
             connMessagesSentTimer.Start();
@@ -73,61 +67,45 @@
         }
 
         /// <summary>
-        /// Method that returns a Booksleeve RedisConnection object with ip and port number matching
+        /// Method that returns a StackExchange.Redis.IDatabase object with ip and port number matching
         ///     what was passed into the constructor for this instance of RedisConnectionWrapper
         /// </summary>
         /// <returns>An open and callable RedisConnection object, shared with other threads in this
         /// application domain that also called for a connection to the specified ip and port</returns>
-        public RedisConnection GetConnection()
+        public IDatabase GetConnection()
         {
-            RedisConnection conn = RedisConnectionWrapper.RedisConnections.GetOrAdd(
-                this.RedisConnIdFromAddressAndPort,
-                this.ConnFromParameters());
+            string connKey = this.RedisConnIdFromAddressAndPort;
 
-            // if for some reason the connection is no longer there. This would happen if null came from the concurrentdictionary
-            if (conn == null ||
-                conn.State == RedisConnectionBase.ConnectionState.Closed ||
-                conn.State == RedisConnectionBase.ConnectionState.Closing)
+            if(!RedisConnectionWrapper.RedisConnections.ContainsKey(connKey))
             {
-                lock (RedisConnectionWrapper.RedisCreateLock)
+                lock(RedisConnectionWrapper.RedisCreateLock)
                 {
-                    if (conn == null ||
-                        conn.State == RedisConnectionBase.ConnectionState.Closed ||
-                        conn.State == RedisConnectionBase.ConnectionState.Closing)
+                    if(!RedisConnectionWrapper.RedisConnections.ContainsKey(connKey))
                     {
-                        conn = this.ConnFromParameters();
+                        ConfigurationOptions connectOpts = ConfigurationOptions.Parse(
+                            this.redisConnParams.ServerAddress + ":" + this.redisConnParams.ServerPort);
 
-                        RedisConnectionWrapper.RedisConnections.AddOrUpdate(
-                            this.RedisConnIdFromAddressAndPort,
-                            conn,
-                            (keyName, existingVal) => conn);
-                    }
-                }
-            }
+                        // just default this value for now
+                        connectOpts.KeepAlive = 3;
 
-            // conn is guaranteed not null, now we need to check to make sure it is open
-            if (!(conn.State == RedisConnectionBase.ConnectionState.Open ||
-                conn.State == RedisConnectionBase.ConnectionState.Opening))
-            {
-                lock (RedisConnectionWrapper.RedisOpenLock)
-                {
-                    if (!(conn.State == RedisConnectionBase.ConnectionState.Open ||
-                        conn.State == RedisConnectionBase.ConnectionState.Opening))
-                    {
+                        if (!string.IsNullOrEmpty(this.redisConnParams.Password))
+                        {
+                            connectOpts.Password = this.redisConnParams.Password;
+                        }
                         if (!string.IsNullOrEmpty(this.redisConnParams.ServerVersion))
                         {
-                            // required for twemproxy (a twitter-created layer for redis sharding) to work
-                            conn.SetServerVersion(new Version(this.redisConnParams.ServerVersion), ServerType.Master);
+                            connectOpts.DefaultVersion = new Version(this.redisConnParams.ServerVersion);
                         }
 
-                        conn.SetKeepAlive(5);
-
-                        conn.Open();
+                        RedisConnectionWrapper.RedisConnections.Add(
+                            connKey,
+                            ConnectionMultiplexer.Connect(
+                                connectOpts));
                     }
                 }
             }
 
-            return conn;
+            return RedisConnectionWrapper.RedisConnections[connKey].GetDatabase();
         }
 
         /// <summary>
@@ -143,66 +121,7 @@
                     this.redisConnParams.ServerPort);
             }
         }
-
-        private RedisConnection ConnFromParameters()
-        {
-            if (!string.IsNullOrEmpty(this.redisConnParams.Password))
-            {
-                return new RedisConnection(
-                    this.redisConnParams.ServerAddress,
-                    this.redisConnParams.ServerPort,
-                    password: this.redisConnParams.Password,
-                    syncTimeout: 2000);
-            }
-
-            return new RedisConnection(
-                this.redisConnParams.ServerAddress, 
-                this.redisConnParams.ServerPort,
-                syncTimeout: 2000);
-        }
-
-        /// <summary>
-        /// Method that removes all stored RedisConnections from the RedisConnectionWrapper's static concurrentdictionary of
-        ///     previously requested connections
-        /// </summary>
-        public static void KillAllConnections(object sender, ElapsedEventArgs e)
-        {
-            try
-            {
-                List<RedisConnection> oldRedisConnections = new List<RedisConnection>(RedisConnectionWrapper.RedisConnections.Count);
-                foreach (var nameConn in RedisConnectionWrapper.RedisConnections.Keys)
-                {
-                    RedisConnection removedRedisConn;
-                    if (RedisConnectionWrapper.RedisConnections.TryRemove(nameConn, out removedRedisConn))
-                    {
-                        oldRedisConnections.Add(removedRedisConn);
-                        // also reset the stats
-                        RedisConnectionWrapper.RedisStats.Remove(nameConn);
-                    }
-                }
-
-                // we removed all of the references to the redis connections from the dictionary, meaning all new requests
-                //      will go to new connection instances. Wait for the current requests depending on this connection to finish
-                Thread.Sleep(5000); // 5 seconds should be ample time to complete all requests
-
-                // dispose of all of the now hopefully idle removed RedisConnection objects
-                foreach (RedisConnection redisConn in oldRedisConnections)
-                {
-                    try
-                    {
-                        redisConn.Close(true);
-                        redisConn.Dispose();
-                    }
-                    catch (Exception)
-                    {
-                    }
-                }
-            }
-            catch (Exception)
-            {
-            }
-        }
-
+        
         /// <summary>
         /// Gets the number of redis commands sent and received, and sets the count to 0 so the next time
         ///     we will not see double counts
@@ -211,44 +130,32 @@
         /// <param name="e"></param>
         public static void GetConnectionsMessagesSent(object sender, ElapsedEventArgs e)
         {
-            bool logSent = RedisConnectionConfig.LogRedisCommandsSentDel != null;
-            bool logRcved = RedisConnectionConfig.LogRedisCommandsReceivedDel != null;
+            bool logCount = RedisConnectionConfig.LogConnectionActionsCountDel != null;
 
-            if (logSent || logRcved)
+            if (logCount)
             {
                 foreach (string connName in RedisConnectionWrapper.RedisConnections.Keys)
                 {
                     try
                     {
-                        RedisConnection conn;
+                        ConnectionMultiplexer conn;
                         if (RedisConnectionWrapper.RedisConnections.TryGetValue(connName, out conn))
                         {
-                            int priorPeriodSent = 0;
-                            int priorPeriodRcved = 0;
+                            long priorPeriodCount = 0;
                             if (RedisConnectionWrapper.RedisStats.ContainsKey(connName))
                             {
-                                priorPeriodSent = RedisConnectionWrapper.RedisStats[connName].Item1;
-                                priorPeriodRcved = RedisConnectionWrapper.RedisStats[connName].Item2;
+                                priorPeriodCount = RedisConnectionWrapper.RedisStats[connName];
                             }
 
-                            Counters counts = conn.GetCounters(false);
-                            if (logSent)
-                            {
-                                // log the sent commands
-                                RedisConnectionConfig.LogRedisCommandsSentDel(
-                                    connName, 
-                                    counts.MessagesSent - priorPeriodSent);
-                            }
-                            if (logRcved)
-                            {
-                                // log the received commands
-                                RedisConnectionConfig.LogRedisCommandsReceivedDel(
-                                    connName, 
-                                    counts.MessagesReceived - priorPeriodRcved);
-                            }
+                            ServerCounters counts = conn.GetCounters();
+                            long curCount = counts.Other.OperationCount;
 
-                            RedisConnectionWrapper.RedisStats[connName] =
-                                new Tuple<int, int>(counts.MessagesSent, counts.MessagesReceived);
+                            // log the sent commands
+                            RedisConnectionConfig.LogConnectionActionsCountDel(
+                                connName, 
+                                curCount - priorPeriodCount);
+
+                                RedisConnectionWrapper.RedisStats[connName] = curCount;
                         }
                     }
                     catch (Exception)
