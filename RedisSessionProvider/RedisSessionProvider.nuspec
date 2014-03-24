@@ -11,6 +11,8 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
     <releaseNotes>
+V1.1.2: Now partially covered by unit tests, improved some necessary locking behavior, minor edge case fixes
+      
 V1.1.1: Added a maximum session size property to RedisConnectionConfig, and delegate that gets called when
     size is exceeded.
       
