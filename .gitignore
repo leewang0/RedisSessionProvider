@@ -10,3 +10,5 @@
 /SampleUsageMVCApp/obj
 /SampleUsageMVCApp/SampleUsageMVCApp.csproj.user
 /RedisSessionProvider/*.nupkg
+/RedisSessionProviderUnitTests/bin
+/RedisSessionProviderUnitTests/obj

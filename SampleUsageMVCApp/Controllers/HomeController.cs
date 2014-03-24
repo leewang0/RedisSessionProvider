@@ -8,11 +8,10 @@
     using System.Web.Mvc;
 
     using Models;
+    using Newtonsoft.Json;
 
     public class HomeController : Controller
     {
-        private static readonly object listIncrLock = new object();
-
         //
         // GET: /Home/
         public ActionResult Index()
@@ -39,7 +38,7 @@
         {
             this.Session["count"] = 0;
             this.Session["safeCount"] = new SafelyIncrementableIntHolder();
-            this.Session["listCount"] = new List<byte>();
+            this.Session["listCount"] = new LockedList();
         }
 
         private TestPageModel GetModel()
@@ -48,34 +47,42 @@
 
 
             SafelyIncrementableIntHolder safeInt = this.Session["safeCount"] as SafelyIncrementableIntHolder;
-            safeInt.Increment();
+            int safeResult = safeInt.Increment();
 
+            LockedList sessList = this.Session["listCount"] as LockedList;
             
-            List<byte> sessList = this.Session["listCount"] as List<byte>;
-            lock (HomeController.listIncrLock)
-            {
-                sessList.Add(0);
-            }
+            sessList.Add(0);
 
             
             TestPageModel mdl = new TestPageModel
             {
                 Count = (int)this.Session["count"],
-                SafeCount = safeInt.Value,
+                SafeCount = safeResult,
                 ListCount = sessList.Count
             };
 
             return mdl;
         }
 
+        [JsonConverter(typeof(CustomSafeIntConverter))]
         class SafelyIncrementableIntHolder
         {
-            public void Increment()
+            public SafelyIncrementableIntHolder()
+                : this(0)
             {
-                Interlocked.Increment(ref this.internalVal);
             }
 
-            private int internalVal = 0;
+            public SafelyIncrementableIntHolder(int startVal)
+            {
+                this.internalVal = startVal;
+            }
+
+            public int Increment()
+            {
+                return Interlocked.Increment(ref this.internalVal);
+            }
+
+            private int internalVal;
 
             public int Value 
             { 
@@ -83,13 +90,60 @@
                 {
                     return internalVal;
                 }
-                set
+            }
+        }
+
+        public class CustomSafeIntConverter : JsonConverter
+        {
+            public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+            {
+                SafelyIncrementableIntHolder result = null;
+
+                while (reader.Read())
                 {
-                    // if not initialized
-                    if (this.internalVal == 0)
+                    if (reader.TokenType == JsonToken.Integer)
                     {
-                        this.internalVal = value;
+                        result = new SafelyIncrementableIntHolder((int)(long)reader.Value);
                     }
+                }
+
+                return result;
+            }
+
+            public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+            {
+                SafelyIncrementableIntHolder safeInt = value as SafelyIncrementableIntHolder;
+                if(safeInt != null)
+                {
+                    writer.WriteStartObject();
+                    writer.WritePropertyName("value");
+                    writer.WriteValue(safeInt.Value);
+                    writer.WriteEndObject();
+                }
+            }
+            
+            public override bool CanConvert(Type objectType)
+            {
+                return objectType == typeof(SafelyIncrementableIntHolder);
+            }
+        }
+
+
+        class LockedList : List<byte>
+        {
+            // we don't care that this object is private and readonly, since it has a
+            //      default value then the empty constructor that json.net calls
+            //      when deserializing will cause this new object to be made each time
+            //      or if multiple threads are currently using one session, they will all
+            //      share one instance of LockedList, so they should have a 
+            //      session-specific lockedObj
+            public readonly object lockedObj = new object();
+
+            public new void Add(byte val)
+            {
+                lock(lockedObj)
+                {
+                    base.Add(val);
                 }
             }
         }

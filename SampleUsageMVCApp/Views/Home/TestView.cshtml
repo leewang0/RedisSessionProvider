@@ -16,12 +16,21 @@
                 $scope.count = @Model.Count;
                 $scope.safeCount = @Model.SafeCount;
                 $scope.listCount = @Model.ListCount;
+
+                $scope.clientCount = @Model.Count;
+                $scope.clientSafeCount = @Model.SafeCount;
+                $scope.clientListCount = @Model.ListCount;
+
                 $scope.debugMessages = [];
 
                 $scope.RunIncrements = function(iterations){
                     if(!angular.isNumber(iterations)) {
                         iterations = 1;
                     }
+
+                    $scope.clientCount += iterations;
+                    $scope.clientSafeCount += iterations;
+                    $scope.clientListCount += iterations;
 
                     for(var x = 0; x < iterations; x++)
                     {
@@ -90,13 +99,13 @@
     <div data-ng-controller="countsController">
         <h3>Current Values:</h3>
         <div>
-            Count: {{ count }}
+            Count: {{ count }}; Should be: {{ clientCount }}
         </div>
         <div>
-            Safe Count: {{ safeCount }}
+            Safe Count: {{ safeCount }}; Should be: {{ clientSafeCount }}
         </div>
         <div>
-            List Count: {{ listCount }}
+            List Count: {{ listCount }}; Should be: {{ clientListCount }}
         </div>
 
         <input type="button" value="Increment 1" data-ng-click="RunIncrements(1)" />
@@ -104,7 +113,7 @@
         <input type="button" value="Increment 10" data-ng-click="RunIncrements(10)" />
 
         <h3>Debug Messages:</h3>
-        <ul>
+        <ul style="max-height: 500px; overflow: scroll;">
             <li data-ng-repeat="message in debugMessages track by $index">{{ message }}</li>
         </ul>
     </div>

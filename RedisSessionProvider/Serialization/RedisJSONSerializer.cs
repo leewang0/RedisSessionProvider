@@ -31,6 +31,36 @@
         /// </summary>
         protected Regex typeInfoReg = new Regex(@"\|\!a_(.*)_a\!\|", RegexOptions.Compiled);
 
+        /// <summary>
+        /// Internal dictionaries for type info for commonly used types, which allows for slightly shorter
+        ///     type names in the serialized output
+        /// </summary>
+        protected readonly Dictionary<Type, string> TypeInfoShortcutsSrlz = new Dictionary<Type, string>() 
+        { 
+            { typeof(int), "SysInt" },
+            { typeof(string), "SysString" },
+            { typeof(long), "SysLong" },
+            { typeof(double), "SysDouble" },
+            { typeof(float), "SysFloat" },
+            { typeof(int[]), "SysIntArr" },
+            { typeof(string[]), "SysStringArr" }
+        };
+
+        /// <summary>
+        /// Internal dictionaries for type info for commonly used types, which allows for slightly shorter
+        ///     type names in the serialized output
+        /// </summary>
+        protected readonly Dictionary<string, Type> TypeInfoShortcutsDsrlz = new Dictionary<string, Type>() 
+        { 
+            { "SysInt", typeof(int) },
+            { "SysString", typeof(string) },
+            { "SysLong", typeof(long) },
+            { "SysDouble", typeof(double) },
+            { "SysFloat", typeof(float) },
+            { "SysIntArr", typeof(int[]) },
+            { "SysStringArr", typeof(string[]) }
+        };
+
         // ADO.NET serialization is difficult because of the recursive nature of the datastructures. In order
         //      to support DataTable and DataSet serialization, we keep track of their type names and if a
         //      Session value is one of these, we use the standard XML serializer for it instead.
@@ -125,7 +155,17 @@
                 // or for most things that are sane, use this
                 else
                 {
-                    Type typeData = JsonConvert.DeserializeObject<Type>(fieldTypeMatch.Groups[1].Value);
+                    string typeInfoString = fieldTypeMatch.Groups[1].Value;
+                    Type typeData;
+
+                    if (this.TypeInfoShortcutsDsrlz.ContainsKey(typeInfoString))
+                    {
+                        typeData = this.TypeInfoShortcutsDsrlz[typeInfoString];
+                    }
+                    else
+                    {
+                        typeData = JsonConvert.DeserializeObject<Type>(typeInfoString);
+                    }
 
                     return JsonConvert.DeserializeObject(
                         objRaw.Substring(fieldTypeMatch.Length),
@@ -212,8 +252,18 @@
             else
             {
                 Type objType = origObj.GetType();
+                string typeInfo;
+
+                if(TypeInfoShortcutsSrlz.ContainsKey(objType))
+                {
+                    typeInfo = TypeInfoShortcutsSrlz[objType];
+                }
+                else
+                {
+                    typeInfo = JsonConvert.SerializeObject(objType);
+                }
+                
                 string objInfo = JsonConvert.SerializeObject(origObj);
-                string typeInfo = JsonConvert.SerializeObject(objType);
 
                 return string.Format(this.typeInfoPattern, typeInfo) + objInfo;
             }
