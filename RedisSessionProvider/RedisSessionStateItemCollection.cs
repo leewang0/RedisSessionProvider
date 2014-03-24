@@ -61,15 +61,10 @@
         protected HashSet<string> AccessedKeys { get; set; }
         
         /// <summary>
-        /// An RWLock whose "read" is allowing access to the objects in the session (either get or set) 
-        ///     but whose "write" is the copying of the state of those objects in the session to a temporary
-        ///     List whose enumerator is returned when the SessionModule is ready to write to Redis. This
-        ///     ensures that any thread can use the ConcurrentDictionary's locking to access objects in 
-        ///     session, but will wait when any of them are ready to write to redis. Changes the data in
-        ///     SerializedRawData, which becomes a state for what was last written or read from Redis since
-        ///     this class is SHARED by all threads accessing a particular user session.
+        /// A lock object used to mutex the GetChangedObjectsEnumerator call, since we only want one
+        ///     request in there at a time per session
         /// </summary>
-        private readonly ReaderWriterLockSlim enumLock = new ReaderWriterLockSlim();
+        private readonly object enumLock = new object();
         
         /// <summary>
         /// The serializer from RedisSerializationConfig to use
@@ -151,27 +146,17 @@
         /// </summary>
         public void Clear()
         {
-            if (this.enumLock.TryEnterReadLock(50))
+            this.Items.Clear();
+
+            // set it so we delete all keys in redis
+            foreach (KeyValuePair<string, string> origData in this.SerializedRawData)
             {
-                try
-                {
-                    this.Items.Clear();
-
-                    // set it so we delete all keys in redis
-                    foreach (KeyValuePair<string, string> origData in this.SerializedRawData)
-                    {
-                        this.AddOrSetItemAction(origData.Key, new DeleteValue());
-                    }
-
-                    // clear internal raw values as well since the delete actions will cause the serializer to
-                    //      ignore original session values, so no need to hold on to them
-                    this.SerializedRawData.Clear();
-                }
-                finally
-                {
-                    this.enumLock.ExitReadLock();
-                }
+                this.AddOrSetItemAction(origData.Key, new DeleteValue());
             }
+
+            // clear internal raw values as well since the delete actions will cause the serializer to
+            //      ignore original session values, so no need to hold on to them
+            this.SerializedRawData.Clear();
         }
 
         /// <summary>
@@ -203,29 +188,16 @@
                 // KeysCollection has no available constructor, so make a fake one... sigh. Look
                 //      into making a subclass of KeysCollection with an internal constructor
                 NameValueCollection fakeColl = new NameValueCollection();
-
-                if (this.enumLock.TryEnterReadLock(50))
+                
+                List<string> keys = new List<string>();
+                foreach(string k in this.Items.Keys)
                 {
-                    try
-                    {
-                        List<string> keys = new List<string>();
-                        foreach(string k in this.Items.Keys)
-                        {
-                            keys.Add(k);
-                        }
+                    keys.Add(k);
+                }
 
-                        foreach (string k in keys)
-                        {
-                            fakeColl.Add(k, "a");
-                        }
-                    }
-                    catch (Exception)
-                    {
-                    }
-                    finally
-                    {
-                        this.enumLock.ExitReadLock();
-                    }
+                foreach (string k in keys)
+                {
+                    fakeColl.Add(k, "a");
                 }
 
                 return fakeColl.Keys;
@@ -238,20 +210,10 @@
         /// <param name="name">The Session key to remove</param>
         public void Remove(string name)
         {
-            if (this.enumLock.TryEnterReadLock(50))
+            object removed;
+            if (this.Items.TryRemove(name, out removed))
             {
-                try
-                {
-                    object removed;
-                    if (this.Items.TryRemove(name, out removed))
-                    {
-                        this.AddOrSetItemAction(name, new DeleteValue());
-                    }
-                }
-                finally
-                {
-                    this.enumLock.ExitReadLock();
-                }
+                this.AddOrSetItemAction(name, new DeleteValue());
             }
         }
 
@@ -294,34 +256,11 @@
         {
             get
             {
-                if (this.enumLock.TryEnterReadLock(50))
-                {
-                    try
-                    {
-                        // read / write locks within this method, be careful
-                        return MemoizedDeserializeGet(name);
-                    }
-                    finally
-                    {
-                        this.enumLock.ExitReadLock();
-                    }
-                }
-
-                return null;
+                return MemoizedDeserializeGet(name);
             }
             set
             {
-                if (this.enumLock.TryEnterReadLock(50))
-                {
-                    try
-                    {
-                        BaseSetWithDeserialize(name, value);
-                    }
-                    finally
-                    {
-                        this.enumLock.ExitReadLock();
-                    }
-                }
+                BaseSetWithDeserialize(name, value);
             }
         }
 
@@ -363,19 +302,7 @@
         {
             get
             {
-                if (this.enumLock.TryEnterReadLock(50))
-                {
-                    try
-                    {
-                        return this.Items.Count;
-                    }
-                    finally
-                    {
-                        this.enumLock.ExitReadLock();
-                    }
-                }
-
-                return 0;
+                return this.Items.Count;
             }
         }
 
@@ -388,7 +315,7 @@
             // we are going to return the default enumerator implementation of ConcurrentDictionary, but
             //      there is one snafu. The keys that have not been read yet are of type
             //      NotYetDeserializedPlaceholderValue, we need to deserialize them now.
-            if (this.enumLock.TryEnterWriteLock(50))
+            lock (this.enumLock)
             {
                 foreach(KeyValuePair<string, object> itm in this.Items)
                 {
@@ -405,11 +332,10 @@
                 }
                 catch (Exception exc)
                 {
-                    RedisSessionConfig.SessionExceptionLoggingDel(exc);
-                }
-                finally
-                {
-                    this.enumLock.ExitWriteLock();
+                    if (RedisSessionConfig.SessionExceptionLoggingDel != null)
+                    {
+                        RedisSessionConfig.SessionExceptionLoggingDel(exc);
+                    }
                 }
             }
 
@@ -553,7 +479,7 @@
         {
             List<KeyValuePair<string, object>> changedObjs = new List<KeyValuePair<string, object>>();
 
-            if (this.enumLock.TryEnterWriteLock(50))
+            lock(enumLock)
             {
                 try
                 {
@@ -653,9 +579,12 @@
                         }
                     }
                 }
-                finally
+                catch(Exception enumExc)
                 {
-                    this.enumLock.ExitWriteLock();
+                    if (RedisSessionConfig.SessionExceptionLoggingDel != null)
+                    {
+                        RedisSessionConfig.SessionExceptionLoggingDel(enumExc);
+                    }
                 }
             }
 

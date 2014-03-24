@@ -62,7 +62,10 @@
             }
             catch (Exception sharedDictExc)
             {
-                RedisSessionConfig.SessionExceptionLoggingDel(sharedDictExc);
+                if (RedisSessionConfig.SessionExceptionLoggingDel != null)
+                {
+                    RedisSessionConfig.SessionExceptionLoggingDel(sharedDictExc);
+                }
             }
         }
 
