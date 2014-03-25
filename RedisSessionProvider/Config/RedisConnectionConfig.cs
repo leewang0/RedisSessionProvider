@@ -27,33 +27,7 @@
         ///     a string and the number of total redis messages to it as a long
         /// </summary>
         public static Action<string, long> LogConnectionActionsCountDel { get; set; }
-
-        [Obsolete("Due to a change in Redis clients starting in v1.2.0, RedisSessionProvider now only" + 
-            " logs total actions taken (both sends and receives) via the LogConnectionActionsCountDel property")]
-        public static Action<string, int> LogRedisCommandsSentDel 
-        {
-            get
-            {
-                return null;
-            }
-            set
-            {
-            }
-        }
-
-        [Obsolete("Due to a change in Redis clients starting in v1.2.0, RedisSessionProvider now only" +
-            " logs total actions taken (both sends and receives) via the LogConnectionActionsCountDel property")]
-        public static Action<string, int> LogRedisCommandsReceivedDel
-        {
-            get
-            {
-                return null;
-            }
-            set
-            {
-            }
-        }
-
+        
         /// <summary>
         /// Gets or sets a function to call every time data is pulled from Redis, where the first
         ///     parameter is the connection name and the second parameter is the size in bytes
@@ -76,5 +50,33 @@
         /// Gets or sets the maximum supported session size, in bytes. Defaults to 30000, or 30kb
         /// </summary>
         public static int MaxSessionByteSize { get; set; }
+
+        #region Deprecated
+        [Obsolete("Due to a change in Redis clients starting in v1.2.0, RedisSessionProvider now only" +
+            " logs total actions taken (both sends and receives) via the LogConnectionActionsCountDel property")]
+        public static Action<string, int> LogRedisCommandsSentDel
+        {
+            get
+            {
+                return null;
+            }
+            set
+            {
+            }
+        }
+
+        [Obsolete("Due to a change in Redis clients starting in v1.2.0, RedisSessionProvider now only" +
+            " logs total actions taken (both sends and receives) via the LogConnectionActionsCountDel property")]
+        public static Action<string, int> LogRedisCommandsReceivedDel
+        {
+            get
+            {
+                return null;
+            }
+            set
+            {
+            }
+        }
+        #endregion
     }
 }

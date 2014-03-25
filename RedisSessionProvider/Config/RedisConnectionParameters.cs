@@ -4,6 +4,8 @@
     using System.Collections.Generic;
     using System.Text;
 
+    using StackExchange.Redis;
+
     public class RedisConnectionParameters
     {
         public RedisConnectionParameters()
@@ -12,6 +14,7 @@
             this.ServerPort = 6379;
             this.Password = null;
             this.ServerVersion = "2.6.14";
+            this.UseProxy = Proxy.None;
         }
 
         /// <summary>
@@ -33,5 +36,11 @@
         /// Gets or sets the redis server version, defaults to 2.6.14
         /// </summary>
         public string ServerVersion { get; set; }
+
+        /// <summary>
+        /// Gets or sets the proxy behavior to use, currently, StackExchange.Redis has an option for
+        ///     TwemProxy-compatible behavior
+        /// </summary>
+        public Proxy UseProxy { get; set; }
     }
 }

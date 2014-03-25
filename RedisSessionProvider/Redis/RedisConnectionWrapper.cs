@@ -86,7 +86,7 @@
                             this.redisConnParams.ServerAddress + ":" + this.redisConnParams.ServerPort);
 
                         // just default this value for now
-                        connectOpts.KeepAlive = 3;
+                        connectOpts.KeepAlive = 5;
 
                         if (!string.IsNullOrEmpty(this.redisConnParams.Password))
                         {
@@ -95,6 +95,11 @@
                         if (!string.IsNullOrEmpty(this.redisConnParams.ServerVersion))
                         {
                             connectOpts.DefaultVersion = new Version(this.redisConnParams.ServerVersion);
+                        }
+                        if (this.redisConnParams.UseProxy != Proxy.None)
+                        {
+                            // thanks marc gravell
+                            connectOpts.Proxy = this.redisConnParams.UseProxy;
                         }
 
                         RedisConnectionWrapper.RedisConnections.Add(
@@ -134,7 +139,7 @@
 
             if (logCount)
             {
-                foreach (string connName in RedisConnectionWrapper.RedisConnections.Keys)
+                foreach (string connName in RedisConnectionWrapper.RedisConnections.Keys.ToList())
                 {
                     try
                     {
@@ -148,14 +153,14 @@
                             }
 
                             ServerCounters counts = conn.GetCounters();
-                            long curCount = counts.Other.OperationCount;
+                            long curCount = counts.Interactive.OperationCount;
 
                             // log the sent commands
                             RedisConnectionConfig.LogConnectionActionsCountDel(
                                 connName, 
                                 curCount - priorPeriodCount);
 
-                                RedisConnectionWrapper.RedisStats[connName] = curCount;
+                            RedisConnectionWrapper.RedisStats[connName] = curCount;
                         }
                     }
                     catch (Exception)

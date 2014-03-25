@@ -68,14 +68,7 @@
                 }
             }
         }
-
-        /// <summary>
-        /// Initializes a new instance of the RefCountingSharedSessionDictionary class
-        /// </summary>
-        public LocalSharedSessionDictionary()
-        {
-        }
-
+        
         /// <summary>
         /// Gets a session for a given redis ID, and increments the count of the number of requests
         ///     that have accessed this redis ID

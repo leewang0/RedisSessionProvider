@@ -115,8 +115,8 @@
         [Test]
         public void RedisItemsChangedObjsEnumeratorTest()
         {
-            List<KeyValuePair<string, object>> changedObjs = new List<KeyValuePair<string, object>>();
-            foreach (KeyValuePair<string, object> val in this.items.GetChangedObjectsEnumerator())
+            List<KeyValuePair<string, string>> changedObjs = new List<KeyValuePair<string, string>>();
+            foreach (KeyValuePair<string, string> val in this.items.GetChangedObjectsEnumerator())
             {
                 changedObjs.Add(val);
             }
@@ -127,22 +127,24 @@
             this.items["foo"] = "bar";
             this.items["lucas"] = "uses venmo";
 
-            foreach (KeyValuePair<string, object> val in this.items.GetChangedObjectsEnumerator())
+            foreach (KeyValuePair<string, string> val in this.items.GetChangedObjectsEnumerator())
             {
                 changedObjs.Add(val);
             }
 
             Assert.AreEqual(3, changedObjs.Count);
             
-            foreach(KeyValuePair<string, object> val in changedObjs)
+            foreach(KeyValuePair<string, string> val in changedObjs)
             {
-                Assert.Contains(val.Value, new string[] { "a thing", "bar", "uses venmo" });
+                Assert.Contains(
+                    this.srsly.DeserializeOne(val.Value), 
+                    new string[] { "a thing", "bar", "uses venmo" });
             }
 
             this.items["a"] = "not x";
 
             changedObjs.Clear();
-            foreach (KeyValuePair<string, object> val in this.items.GetChangedObjectsEnumerator())
+            foreach (KeyValuePair<string, string> val in this.items.GetChangedObjectsEnumerator())
             {
                 changedObjs.Add(val);
             }
@@ -151,7 +153,9 @@
             //      this call should only return "a", "not x"
             Assert.AreEqual(1, changedObjs.Count);
             Assert.AreEqual(changedObjs[0].Key, "a");
-            Assert.AreEqual(changedObjs[0].Value, "not x");
+            Assert.AreEqual( 
+                this.srsly.DeserializeOne(changedObjs[0].Value), 
+                "not x");
         }
 
         [Test]
@@ -160,7 +164,7 @@
             // test that nothing has changed since the stuff we added was in the constructor,
             //      so in real usage that would be coming from Redis and thus be the default state
             int numChanged = 0;
-            foreach (KeyValuePair<string, object> val in this.items.GetChangedObjectsEnumerator())
+            foreach (KeyValuePair<string, string> val in this.items.GetChangedObjectsEnumerator())
             {
                 numChanged++;
             }
@@ -171,11 +175,15 @@
             this.items["a"] = "not x";
 
             numChanged = 0;
-            foreach (KeyValuePair<string, object> val in this.items.GetChangedObjectsEnumerator())
+            foreach (KeyValuePair<string, string> val in this.items.GetChangedObjectsEnumerator())
             {
                 numChanged++;
-                Assert.AreEqual(val.Key, "a");
-                Assert.AreEqual(val.Value, "not x");
+                Assert.AreEqual(
+                    val.Key, 
+                    "a");
+                Assert.AreEqual(
+                    this.srsly.DeserializeOne(val.Value), 
+                    "not x");
             }
 
             Assert.AreEqual(1, numChanged);
@@ -187,7 +195,7 @@
             this.items["a"] = "not x";
 
             numChanged = 0;
-            foreach (KeyValuePair<string, object> val in this.items.GetChangedObjectsEnumerator())
+            foreach (KeyValuePair<string, string> val in this.items.GetChangedObjectsEnumerator())
             {
                 numChanged++;
             }
@@ -199,7 +207,7 @@
             this.items["new"] = null;
 
             numChanged = 0;
-            foreach (KeyValuePair<string, object> val in this.items.GetChangedObjectsEnumerator())
+            foreach (KeyValuePair<string, string> val in this.items.GetChangedObjectsEnumerator())
             {
                 numChanged++;
             }
@@ -212,11 +220,15 @@
 
             this.items["new"] = "m";
             numChanged = 0;
-            foreach (KeyValuePair<string, object> val in this.items.GetChangedObjectsEnumerator())
+            foreach (KeyValuePair<string, string> val in this.items.GetChangedObjectsEnumerator())
             {
                 numChanged++;
-                Assert.AreEqual(val.Key, "new");
-                Assert.AreEqual(val.Value, "m");
+                Assert.AreEqual(
+                    val.Key, 
+                    "new");
+                Assert.AreEqual(
+                    this.srsly.DeserializeOne(val.Value), 
+                    "m");
             }
 
             Assert.AreEqual(1, numChanged);
@@ -224,10 +236,12 @@
             this.items["new"] = null;
 
             numChanged = 0;
-            foreach (KeyValuePair<string, object> val in this.items.GetChangedObjectsEnumerator())
+            foreach (KeyValuePair<string, string> val in this.items.GetChangedObjectsEnumerator())
             {
                 numChanged++;
-                Assert.AreEqual(val.Key, "new");
+                Assert.AreEqual(
+                    val.Key, 
+                    "new");
                 Assert.IsNull(val.Value);
             }
 
@@ -253,15 +267,15 @@
             bool listCameBack = false;
             bool otherListCameBack = false;
             // test that these come back from the enumerator
-            foreach(KeyValuePair<string, object> changed in this.items.GetChangedObjectsEnumerator())
+            foreach(KeyValuePair<string, string> changed in this.items.GetChangedObjectsEnumerator())
             {
-                if(changed.Key == "refType" && changed.Value == myList &&
-                    srsly.SerializeOne(changed.Key, changed.Value) == srsly.SerializeOne(changed.Key, myList))
+                if(changed.Key == "refType" &&
+                    changed.Value == srsly.SerializeOne(changed.Key, myList))
                 {
                     listCameBack = true;
                 }
-                else if (changed.Key == "otherRefType" && changed.Value == myOtherList &&
-                    srsly.SerializeOne(changed.Key, changed.Value) == srsly.SerializeOne(changed.Key, myOtherList))
+                else if (changed.Key == "otherRefType" &&
+                    changed.Value == srsly.SerializeOne(changed.Key, myOtherList))
                 {
                     otherListCameBack = true;
                 }
@@ -274,7 +288,7 @@
             listCameBack = false;
             otherListCameBack = false;
 
-            foreach (KeyValuePair<string, object> changed in this.items.GetChangedObjectsEnumerator())
+            foreach (KeyValuePair<string, string> changed in this.items.GetChangedObjectsEnumerator())
             {
                 if(changed.Key == "refType")
                 {
@@ -294,10 +308,10 @@
             myOtherList.Add(1);
 
             otherListCameBack = false;
-            foreach (KeyValuePair<string, object> changed in this.items.GetChangedObjectsEnumerator())
+            foreach (KeyValuePair<string, string> changed in this.items.GetChangedObjectsEnumerator())
             {
-                if(changed.Key == "otherRefType" && changed.Value == myOtherList &&
-                    srsly.SerializeOne(changed.Key, changed.Value) == srsly.SerializeOne(changed.Key, myOtherList))
+                if(changed.Key == "otherRefType" && 
+                    changed.Value == srsly.SerializeOne(changed.Key, myOtherList))
                 {
                     otherListCameBack = true;
                 }
@@ -312,10 +326,10 @@
             myList.Clear();
 
             listCameBack = false;
-            foreach (KeyValuePair<string, object> changed in this.items.GetChangedObjectsEnumerator())
+            foreach (KeyValuePair<string, string> changed in this.items.GetChangedObjectsEnumerator())
             {
-                if (changed.Key == "refType" && changed.Value == myList &&
-                    srsly.SerializeOne(changed.Key, changed.Value) == srsly.SerializeOne(changed.Key, myList))
+                if (changed.Key == "refType" && 
+                    changed.Value == srsly.SerializeOne(changed.Key, myList))
                 {
                     listCameBack = true;
                 }

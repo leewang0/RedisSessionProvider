@@ -594,14 +594,24 @@
             Indicates whether the condition was satisfied
             </summary>
         </member>
+        <member name="T:StackExchange.Redis.Proxy">
+            <summary>
+            Specifies the proxy that is being used to communicate to redis
+            </summary>
+        </member>
+        <member name="F:StackExchange.Redis.Proxy.None">
+            <summary>
+            Direct communication to the redis server(s)
+            </summary>
+        </member>
+        <member name="F:StackExchange.Redis.Proxy.Twemproxy">
+            <summary>
+            Communication via <a href="https://github.com/twitter/twemproxy">twemproxy</a>
+            </summary>
+        </member>
         <member name="T:StackExchange.Redis.ConfigurationOptions">
             <summary>
             The options relevant to a set of redis connections
-            </summary>
-        </member>
-        <member name="M:StackExchange.Redis.ConfigurationOptions.#ctor">
-            <summary>
-            Create a new ConfigurationOptions instance
             </summary>
         </member>
         <member name="M:StackExchange.Redis.ConfigurationOptions.Parse(System.String)">
@@ -640,6 +650,11 @@
             <summary>
             Gets or sets the SocketManager instance to be used with these options; if this is null a per-multiplexer
             SocketManager is created automatically.
+            </summary>
+        </member>
+        <member name="P:StackExchange.Redis.ConfigurationOptions.Proxy">
+            <summary>
+            Indicates whether admin operations should be allowed
             </summary>
         </member>
         <member name="P:StackExchange.Redis.ConfigurationOptions.AllowAdmin">
@@ -1102,9 +1117,9 @@
             Indicates whether any servers are connected
             </summary>
         </member>
-        <member name="P:StackExchange.Redis.ConnectionMultiplexer.ShowKeysInTimeout">
+        <member name="P:StackExchange.Redis.ConnectionMultiplexer.IncludeDetailInExceptions">
             <summary>
-            Should the key name be displayed when generating a timeout message?
+            Should exceptions include identifiable details? (key names, additional .Data annotations)
             </summary>
         </member>
         <member name="P:StackExchange.Redis.ConnectionMultiplexer.StormLogThreshold">
@@ -3526,6 +3541,11 @@
             Create a new CommandMap, customizing some commands
             </summary>
         </member>
+        <member name="M:StackExchange.Redis.CommandMap.Create(System.Collections.Generic.HashSet{System.String},System.Boolean)">
+            <summary>
+            Creates a CommandMap by specifying which commands are available or unavailable
+            </summary>
+        </member>
         <member name="M:StackExchange.Redis.CommandMap.ToString">
             <summary>
             See Object.ToString()
@@ -3535,6 +3555,12 @@
             <summary>
             The default commands specified by redis
             </summary>
+        </member>
+        <member name="P:StackExchange.Redis.CommandMap.Twemproxy">
+            <summary>
+            The commands available to <a href="twemproxy">https://github.com/twitter/twemproxy</a>
+            </summary>
+            <remarks>https://github.com/twitter/twemproxy/blob/master/notes/redis.md</remarks>
         </member>
         <member name="M:StackExchange.Redis.PhysicalBridge.WriteMessageDirect(StackExchange.Redis.PhysicalConnection,StackExchange.Redis.Message)">
             <summary>
@@ -4191,6 +4217,11 @@
         <member name="F:StackExchange.Redis.ServerType.Cluster">
             <summary>
             Distributed redis-cluster server
+            </summary>
+        </member>
+        <member name="F:StackExchange.Redis.ServerType.Twemproxy">
+            <summary>
+            Distributed redis installation via <a href="https://github.com/twitter/twemproxy">twemproxy</a>
             </summary>
         </member>
         <member name="T:StackExchange.Redis.SetOperation">

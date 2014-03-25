@@ -17,10 +17,13 @@
     {
         private RedisSessionStateItemCollection items;
 
+        private IRedisSerializer srsly;
+
         [SetUp]
         public void OnBeforeTestExecute()
         {
             this.items = new RedisSessionStateItemCollection();
+            this.srsly = new RedisJSONSerializer();
         }
 
         [Test]
@@ -192,10 +195,15 @@
                     {
                         Debug.WriteLine("Thread {0} enumerating session items", index);
 
-                        foreach(KeyValuePair<string, object> changedObj in 
+                        foreach(KeyValuePair<string, string> changedObj in 
                             this.items.GetChangedObjectsEnumerator())
                         {
-                            Assert.Contains(changedObj.Value, new object[] { 1, 2, null });
+                            if (changedObj.Value != null)
+                            {
+                                Assert.Contains(
+                                    this.srsly.DeserializeOne(changedObj.Value),
+                                    new object[] { 1, 2 });
+                            }
                         }
                     }
                 }

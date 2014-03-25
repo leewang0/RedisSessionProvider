@@ -513,9 +513,9 @@
         ///     that back to Redis at the end.
         /// </summary>
         /// <returns>an IEnumerator that allows iteration over the changed elements of the Session.</returns>
-        public IEnumerable<KeyValuePair<string, object>> GetChangedObjectsEnumerator()
+        public IEnumerable<KeyValuePair<string, string>> GetChangedObjectsEnumerator()
         {
-            List<KeyValuePair<string, object>> changedObjs = new List<KeyValuePair<string, object>>();
+            List<KeyValuePair<string, string>> changedObjs = new List<KeyValuePair<string, string>>();
 
             lock(enumLock)
             {
@@ -539,9 +539,9 @@
                                 {
                                     // ok we added to the initial state, return the new value
                                     changedObjs.Add(
-                                        new KeyValuePair<string, object>(
+                                        new KeyValuePair<string, string>(
                                             changeData.Key,
-                                            changeData.Value.Value));
+                                            newSerVal));
 
                                     return newSerVal;
                                 },
@@ -551,9 +551,9 @@
                                     {
                                         // ok we reset the initial state, return the new value
                                         changedObjs.Add(
-                                            new KeyValuePair<string, object>(
+                                            new KeyValuePair<string, string>(
                                                 changeData.Key,
-                                                changeData.Value.Value));
+                                                newSerVal));
 
                                         return newSerVal;
                                     }                                    
@@ -571,7 +571,7 @@
                             {
                                 // null means delete to the serializer, perhaps change this in the future
                                 changedObjs.Add(
-                                    new KeyValuePair<string, object>(
+                                    new KeyValuePair<string, string>(
                                         changeData.Key,
                                         null));
                             }
@@ -581,35 +581,44 @@
                     // check each key that was accessed for changes
                     foreach (KeyValuePair<string, object> itm in this.Items)
                     {
-                        // only check keys that are not already in the changedObjs list
-                        bool alreadyAdded = false;
-                        foreach (KeyValuePair<string, object> markedItem in changedObjs)
+                        try
                         {
-                            if (markedItem.Key == itm.Key)
+                            // only check keys that are not already in the changedObjs list
+                            bool alreadyAdded = false;
+                            foreach (KeyValuePair<string, string> markedItem in changedObjs)
                             {
-                                alreadyAdded = true;
-                                break;
-                            }
-                        }
-
-                        if (!alreadyAdded && !(itm.Value is NotYetDeserializedPlaceholderValue))
-                        {
-                            string serVal = this.cereal.SerializeOne(itm.Key, itm.Value);
-                            string origSerVal;
-                            if (this.SerializedRawData.TryGetValue(itm.Key, out origSerVal))
-                            {
-                                if (serVal != origSerVal)
+                                if (markedItem.Key == itm.Key)
                                 {
-                                    // object's value has changed, add to output list
-                                    changedObjs.Add(new KeyValuePair<string, object>(itm.Key, itm.Value));
-
-                                    // and reset the original state of it to what it is now
-                                    this.SerializedRawData.TryUpdate(
-                                        itm.Key,
-                                        serVal,
-                                        origSerVal);
+                                    alreadyAdded = true;
+                                    break;
                                 }
                             }
+
+                            if (!alreadyAdded && !(itm.Value is NotYetDeserializedPlaceholderValue))
+                            {
+                                string serVal = this.cereal.SerializeOne(itm.Key, itm.Value);
+                                string origSerVal;
+                                if (this.SerializedRawData.TryGetValue(itm.Key, out origSerVal))
+                                {
+                                    if (serVal != origSerVal)
+                                    {
+                                        // object's value has changed, add to output list
+                                        changedObjs.Add(
+                                            new KeyValuePair<string, string>(
+                                                itm.Key, 
+                                                serVal));
+
+                                        // and reset the original state of it to what it is now
+                                        this.SerializedRawData.TryUpdate(
+                                            itm.Key,
+                                            serVal,
+                                            origSerVal);
+                                    }
+                                }
+                            }
+                        }
+                        catch(Exception)
+                        {
                         }
                     }
                 }

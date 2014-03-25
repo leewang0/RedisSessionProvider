@@ -292,7 +292,8 @@
 
                 if (redisItems != null)
                 {
-                    List<KeyValuePair<string, object>> setItems = new List<KeyValuePair<string, object>>();
+                    List<KeyValuePair<RedisValue, RedisValue>> setItems = 
+                        new List<KeyValuePair<RedisValue, RedisValue>>();
                     List<RedisValue> delItems = new List<RedisValue>();
 
                     RedisConnectionWrapper rConnWrap = new RedisConnectionWrapper(
@@ -300,12 +301,15 @@
                             new HttpContextWrapper(
                                 context)));
 
-                    foreach (KeyValuePair<string, object> changedObj in 
+                    foreach (KeyValuePair<string, string> changedObj in 
                         redisItems.GetChangedObjectsEnumerator())
                     {
                         if (changedObj.Value != null)
                         {
-                            setItems.Add(new KeyValuePair<string, object> (changedObj.Key, changedObj.Value));
+                            setItems.Add(
+                                new KeyValuePair<RedisValue, RedisValue>(
+                                    changedObj.Key, 
+                                    changedObj.Value));
                         }
                         else
                         {
@@ -376,21 +380,21 @@
         /// <param name="currentRedisHashId">The current Redis key name</param>
         /// <param name="redisConn">A connection to Redis</param>
         private void SerializeToRedis(
-            List<KeyValuePair<string, object>> setItems,            
+            List<KeyValuePair<RedisValue, RedisValue>> setItems,            
             RedisValue[] delItems,
             string currentRedisHashId,
             IDatabase redisConn)
         {
+            redisConn.KeyExpire(
+                currentRedisHashId,
+                this.SessionTimeout,
+                CommandFlags.FireAndForget);
+
             if (setItems.Count > 0)
             {
                 redisConn.HashSet(
                     currentRedisHashId,
-                    this.cereal.Serialize(setItems),
-                    CommandFlags.FireAndForget);
-
-                redisConn.KeyExpire(
-                    currentRedisHashId,
-                    this.SessionTimeout,
+                    setItems.ToArray(),
                     CommandFlags.FireAndForget);
             }
             if (delItems != null && delItems.Length > 0)
@@ -399,9 +403,6 @@
                     currentRedisHashId,
                     delItems,
                     CommandFlags.FireAndForget);
-
-                // no need to set TTL again because we are just deleting items, ergo there had to have been
-                //      items to get in the first place ergo we would have set TTL during session get
             }
         }
 

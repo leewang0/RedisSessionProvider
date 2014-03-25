@@ -9,7 +9,8 @@
     using System.Web.Routing;
 
     using NLog;
-    using RedisSessionProvider.Config;
+    using StackExchange.Redis;
+    using RedisSessionProvider.Config;    
 
     // Note: For instructions on enabling IIS6 or IIS7 classic mode, 
     // visit http://go.microsoft.com/?LinkId=9394801
@@ -33,9 +34,10 @@
                 return new RedisConnectionParameters()
                 {
                     ServerAddress = "10.224.61.240",
-                    ServerPort = 1000,  // raw
-                    //ServerPort = 22111, // TwemProxy
-                    ServerVersion = "2.6.14"
+                    //ServerPort = 1000,            // raw
+                    ServerPort = 22122,             // TwemProxy
+                    UseProxy = Proxy.Twemproxy,     // more TwemProxy
+                    ServerVersion = "2.6.14"                    
                 };
             };
 
@@ -45,6 +47,14 @@
                     LogLevel.Error,
                     "Unhandled RedisSessionProvider exception",
                     e);
+            };
+
+            RedisConnectionConfig.LogConnectionActionsCountDel = (string name, long count) =>
+            {
+                MvcApplication.globLog.Debug(
+                    "Redis connection {0} had {1} operations",
+                    name,
+                    count);
             };
         }
     }
