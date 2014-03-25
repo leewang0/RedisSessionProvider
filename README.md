@@ -58,11 +58,10 @@ seems to be the most popular.
 
 * .NET 4.5 library for storing Session data in Redis
 * ASP.NET web Sessions are stored as [Redis hashes](http://redis.io/commands#hash), with each Session\["someKey"\]
-translating to "someKey" in the Redish hash
+translating to "someKey" in the Redis hash
 * only performs SET or DEL operations back to Redis if the value has changed
 * batches all SET and DEL operations when the Session is released (at the end of the request)
-* uses the [Booksleeve](https://code.google.com/p/booksleeve/) redis client, an await-able library for asynchronous
-communication with Redis
+* uses the [StackExchange.Redis](https://github.com/StackExchange/StackExchange.Redis) redis client
 * many configurable options for the particulars of using your redis instance(s), see the options section below
 * JSON serialization format for human-readable Session contents, using Json.NET
 * production-tested on [DateHookup](http://www.datehookup.com) a website that serves 25 million page visits (and
@@ -118,7 +117,8 @@ in your application (Global.asax application_start is a good place for that):
 			ServerAddress = "Your redis server IP or hostname",
 			ServerPort = 1234, // the port your redis server is listening on, defaults to 6379
 			Password = "12345", // if your redis server is password protected, set this, otherwise leave null
-			ServerVersion = "2.6.14" // sometimes necessary, defaults to 2.6.14
+			ServerVersion = "2.6.14", // sometimes necessary, defaults to 2.6.14
+			UseProxy = Proxy.None     // can specify TwemProxy as a proxy layer
 		};
 	};
 
@@ -126,7 +126,10 @@ Why does it take a lambda function? It takes a lambda in case you want to
 load-balance across multiple Redis instances, using the context as input. This way, you can dynamically choose your 
 Redis server to suit your needs. If you only have one server, a simple function like the example will suffice.
 RedisSessionProvider may provide an IOC-based configuration method in future versions, but for now it's a static
-property.
+property. In V1.2 of the NuGet package, a proxy option was added to the connection parameters that allows you to
+specify [TwemProxy](https://github.com/twitter/twemproxy/blob/master/notes/redis.md) compatible behavior from 
+StackExchange.Redis. By specifying this, you will have a reduced command set available, allowing RedisSessionProvider 
+to talk to a TwemProxy endpoint.
 
 At this point, your application should work, but there are additional configuration options should you need them.
 

@@ -41,18 +41,16 @@
         object DeserializeOne(string objRaw);
 
         /// <summary>
-        /// Serializes an entire dictionary of objects into a dictionary of their serialized byte arrays,
-        ///     but keeps the keys. RedisSessionProvider uses this at the end of the request to write
-        ///     all changed objects back to Redis.
+        /// Serializes an entire dictionary of objects into a dictionary of their serialized string 
+        ///     representations, but keeps the keys.
         /// </summary>
-        /// <param name="redisSetItemsOriginal">The entire contents of the current Session</param>
-        /// <returns>A dictionary of name to serialized byte array values corresponding to the input
+        /// <param name="redisSetItemsOriginal">The changed contents of the current Session</param>
+        /// <returns>A dictionary of name to serialized string values corresponding to the input
         ///     redisSetItemsOriginal</returns>
         KeyValuePair<RedisValue, RedisValue>[] Serialize(List<KeyValuePair<string, object>> redisSetItemsOriginal);
 
         /// <summary>
-        /// This method serializes one key-object pair into a string. RedisSessionProvider then uses
-        ///     the byte array of the utf-8 encoding of the string as the final value to write to Redis.
+        /// This method serializes one key-object pair into a string.
         /// </summary>
         /// <param name="key">The string key of the Session property, may factor into your serializer, 
         ///     may not</param>
