@@ -7,6 +7,8 @@
     using System.Threading.Tasks;
     using System.Web;
 
+    using StackExchange.Redis;
+
     public static class RedisConnectionConfig
     {
         static RedisConnectionConfig()
@@ -16,11 +18,12 @@
         }
 
         /// <summary>
-        /// Gets or sets a delegate method which takes in an HttpContext and returns the necessary
-        ///     hostname and port information for the appropriate redis server that contains the
-        ///     Redis Session data for the httprequest-httpresponse in the HttpContext parameter
+        /// A delegate for returning a StackExchange.Redis.ConfigurationOptions instance which will dictate
+        ///     to the StackExchange.Redis client what Redis instance to connect to for persisting session data. 
+        ///     Please assign a string key to your connection as well, in case you want to connect to multiple
+        ///     sets of Redis instances.
         /// </summary>
-        public static Func<HttpContextBase, RedisConnectionParameters> GetRedisServerAddress = null;
+        public static Func<HttpContextBase, KeyValuePair<string, ConfigurationOptions>> GetSERedisServerConfig = null;
 
         /// <summary>
         /// Gets or sets a logging delegate that takes as input the server ip and port of the connection used as
@@ -77,6 +80,12 @@
             {
             }
         }
+
+        [Obsolete("Due to a change in Redis clients, v1.2.1 of RedisSessionProvider now prefers to use the" +
+            " StackExchange.Redis ConfigurationOptions class for handling Redis connection data. This method will" +
+            " still work if GetSERedisServerConfig is not set, however, we strongly advise you to switch since it" +
+            " will allow you to store your connection configuration in one format.")]
+        public static Func<HttpContextBase, RedisConnectionParameters> GetRedisServerAddress = null;
         #endregion
     }
 }

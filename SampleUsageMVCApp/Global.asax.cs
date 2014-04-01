@@ -18,6 +18,8 @@
     {
         private static Logger globLog;
 
+        private static ConfigurationOptions redisConfigOpts;
+
         protected void Application_Start()
         {
             MvcApplication.globLog = LogManager.GetCurrentClassLogger();
@@ -29,6 +31,18 @@
             RouteConfig.RegisterRoutes(RouteTable.Routes);
 
             // assign your local testing Redis instance address
+            MvcApplication.redisConfigOpts = ConfigurationOptions.Parse("10.224.61.240:22122");
+            MvcApplication.redisConfigOpts.Proxy = Proxy.Twemproxy;
+
+            // give it to RedisSessionProvider
+            RedisConnectionConfig.GetSERedisServerConfig = (HttpContextBase context) =>
+            {
+                return new KeyValuePair<string,ConfigurationOptions>(
+                    "DefaultConnection", 
+                    MvcApplication.redisConfigOpts);
+            };
+
+            // deprecated old method, but will work if GetSERedisServerConfig is null
             RedisConnectionConfig.GetRedisServerAddress = (HttpContextBase context) =>
             {
                 return new RedisConnectionParameters()

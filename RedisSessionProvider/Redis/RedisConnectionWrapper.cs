@@ -34,7 +34,13 @@
         /// <summary>
         /// Gets or sets the parameters to use when connecting to a redis server
         /// </summary>
-        private RedisConnectionParameters redisConnParams;
+        private ConfigurationOptions connData;
+
+        /// <summary>
+        /// A string identifier for the connection, which will be used as the connection's key in the
+        ///     this.RedisConnections dictionary.
+        /// </summary>
+        public string ConnectionID { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the RedisConnectionWrapper class, which contains methods for accessing
@@ -44,10 +50,12 @@
         /// <param name="serverPort">The port number of the redis instance</param>
         public RedisConnectionWrapper(string srvAddr, int srvPort)
         {
-            this.redisConnParams = new RedisConnectionParameters() { 
-                ServerAddress = srvAddr,
-                ServerPort = srvPort
-            };
+            this.connData = ConfigurationOptions.Parse(srvAddr + ":" + srvPort);
+
+            this.ConnectionID = string.Format(
+                    "{0}_%_{1}",
+                    srvAddr,
+                    srvPort);
         }
         
         /// <summary>
@@ -63,7 +71,31 @@
                     "RedisConnectionWrapper cannot be initialized with null RedisConnectionParameters property");
             }
 
-            this.redisConnParams = redisParams;
+            this.connData = redisParams.TranslateToConfigOpts();
+
+            this.ConnectionID = string.Format(
+                    "{0}_%_{1}",
+                    redisParams.ServerAddress,
+                    redisParams.ServerPort);
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the RedisConnectionWrapper class, which contains methods for accessing
+        ///     a static concurrentdictionary of already created and open redisconnection instances
+        /// </summary>
+        /// <param name="connIdentifier">Because it is possible to have connections to multiple redis instances, we store
+        /// a dictionary of them to reuse. This parameter is used as the key to that dictionary.</param>
+        /// <param name="connOpts">A StackExchange.Redis configuration class containing the redis connection info</param>        
+        public RedisConnectionWrapper(string connIdentifier, ConfigurationOptions connOpts)
+        {
+            if (connOpts == null)
+            {
+                throw new ConfigurationErrorsException(
+                    "RedisConnectionWrapper cannot be initialized with null ConfigurationOptions property");
+            }
+
+            this.connData = connOpts;
+            this.ConnectionID = connIdentifier;
         }
 
         /// <summary>
@@ -74,57 +106,21 @@
         /// application domain that also called for a connection to the specified ip and port</returns>
         public IDatabase GetConnection()
         {
-            string connKey = this.RedisConnIdFromAddressAndPort;
-
-            if(!RedisConnectionWrapper.RedisConnections.ContainsKey(connKey))
+            if (!RedisConnectionWrapper.RedisConnections.ContainsKey(this.ConnectionID))
             {
                 lock(RedisConnectionWrapper.RedisCreateLock)
                 {
-                    if(!RedisConnectionWrapper.RedisConnections.ContainsKey(connKey))
+                    if (!RedisConnectionWrapper.RedisConnections.ContainsKey(this.ConnectionID))
                     {
-                        ConfigurationOptions connectOpts = ConfigurationOptions.Parse(
-                            this.redisConnParams.ServerAddress + ":" + this.redisConnParams.ServerPort);
-
-                        // just default this value for now
-                        connectOpts.KeepAlive = 5;
-
-                        if (!string.IsNullOrEmpty(this.redisConnParams.Password))
-                        {
-                            connectOpts.Password = this.redisConnParams.Password;
-                        }
-                        if (!string.IsNullOrEmpty(this.redisConnParams.ServerVersion))
-                        {
-                            connectOpts.DefaultVersion = new Version(this.redisConnParams.ServerVersion);
-                        }
-                        if (this.redisConnParams.UseProxy != Proxy.None)
-                        {
-                            // thanks marc gravell
-                            connectOpts.Proxy = this.redisConnParams.UseProxy;
-                        }
-
                         RedisConnectionWrapper.RedisConnections.Add(
-                            connKey,
+                            this.ConnectionID,
                             ConnectionMultiplexer.Connect(
-                                connectOpts));
+                                this.connData));
                     }
                 }
             }
 
-            return RedisConnectionWrapper.RedisConnections[connKey].GetDatabase();
-        }
-
-        /// <summary>
-        /// Gets a string uniquely identifying the connection from hostname and port number
-        /// </summary>
-        internal string RedisConnIdFromAddressAndPort
-        {
-            get
-            {
-                return string.Format(
-                    "{0}_%_{1}",
-                    this.redisConnParams.ServerAddress,
-                    this.redisConnParams.ServerPort);
-            }
+            return RedisConnectionWrapper.RedisConnections[this.ConnectionID].GetDatabase();
         }
         
         /// <summary>

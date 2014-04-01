@@ -72,12 +72,6 @@
 
             this.SessionTimeout = sessCfg.Timeout;
             
-            if (RedisConnectionConfig.GetRedisServerAddress == null)
-            {
-                throw new ConfigurationErrorsException(
-                    "RedisConnectionConfig must have a GetRedisServerAddress delegate method for RedisSessionProvider to work.");
-            }
-
             this.cereal = RedisSerializationConfig.SessionDataSerializer;
         }
 
@@ -246,10 +240,8 @@
         /// <param name="item">The Session's properties</param>
         public override void RemoveItem(HttpContext context, string id, object lockId, SessionStateStoreData item)
         {
-            RedisConnectionWrapper rConnWrap = new RedisConnectionWrapper(
-                RedisConnectionConfig.GetRedisServerAddress(
-                    new HttpContextWrapper(
-                        context)));
+            RedisConnectionWrapper rConnWrap = RedisSessionStateStoreProvider.RedisConnWrapperFromContext(
+                new HttpContextWrapper(context));
 
             IDatabase redisConn = rConnWrap.GetConnection();
 
@@ -296,10 +288,8 @@
                         new List<KeyValuePair<RedisValue, RedisValue>>();
                     List<RedisValue> delItems = new List<RedisValue>();
 
-                    RedisConnectionWrapper rConnWrap = new RedisConnectionWrapper(
-                        RedisConnectionConfig.GetRedisServerAddress(
-                            new HttpContextWrapper(
-                                context)));
+                    RedisConnectionWrapper rConnWrap = RedisSessionStateStoreProvider.RedisConnWrapperFromContext(
+                        new HttpContextWrapper(context));
 
                     foreach (KeyValuePair<string, string> changedObj in 
                         redisItems.GetChangedObjectsEnumerator())
@@ -343,8 +333,8 @@
         /// <returns>An instance of RedisSessionStateItemCollection, may be empty if Redis call fails</returns>
         private RedisSessionStateItemCollection GetItemFromRedis(string redisKey, HttpContextBase context)
         {
-            RedisConnectionWrapper rConnWrap = new RedisConnectionWrapper(
-                RedisConnectionConfig.GetRedisServerAddress(context));
+            RedisConnectionWrapper rConnWrap = RedisSessionStateStoreProvider.RedisConnWrapperFromContext(
+                context);
 
             IDatabase redisConn = rConnWrap.GetConnection();
 
@@ -355,8 +345,8 @@
                 redisConn.KeyExpire(redisKey, this.SessionTimeout, CommandFlags.FireAndForget);
 
                 return new RedisSessionStateItemCollection(
-                    redisData, 
-                    rConnWrap.RedisConnIdFromAddressAndPort, 
+                    redisData,
+                    rConnWrap.ConnectionID, 
                     0);
             }
             catch (Exception e)
@@ -404,6 +394,38 @@
                     delItems,
                     CommandFlags.FireAndForget);
             }
+        }
+
+        /// <summary>
+        /// Helper method which uses the RedisConnectionConfig properties to get the correct RedisConnectionWrapper
+        ///     given an HttpContext
+        /// </summary>
+        /// <param name="context">The httpcontext of the current request</param>
+        /// <returns>
+        /// A RedisConnectionWrapper object which can be used to get an StackExchange.Redis IDatabase instance
+        ///     for communicating with Redis
+        /// </returns>
+        public static RedisConnectionWrapper RedisConnWrapperFromContext(HttpContextBase context)
+        {
+            if(RedisConnectionConfig.GetSERedisServerConfig != null)
+            {
+                KeyValuePair<string, ConfigurationOptions> connData = 
+                    RedisConnectionConfig.GetSERedisServerConfig(context);
+                return new RedisConnectionWrapper(
+                    connData.Key,
+                    connData.Value);
+            }
+#pragma warning disable 0618
+            else if(RedisConnectionConfig.GetRedisServerAddress != null)
+            {
+                return new RedisConnectionWrapper(
+                    RedisConnectionConfig.GetRedisServerAddress(context));
+            }
+#pragma warning restore 0618
+
+            throw new ConfigurationException(
+                "RedisSessionProvider.Config.RedisConnectionWrapper.GetSERedisServerConfig delegate not set " +
+                "see project page at: github.com/welegan/RedisSessionProvider#configuring-your-specifics");
         }
 
         /// <summary>
