@@ -11,16 +11,25 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
     <releaseNotes>
+V1.2.2: Added RedisSessionAccessor class, allowing WebAPI and non-standard pipelines to use RedisSessionProvider.
+  usage details on project page.
+      
 V1.2.1: Now using StackExchange.Redis.ConfigurationOptions internally for handling connection data
   Updated StackExchange.Redis package reference
-      
+
 V1.2.0: Redis client changed from BookSleeve to StackExchange.Redis
   IRedisSerializer method signatures changed to better mesh with the new SE.Redis client calls
   Various improvements to speed and memory usage
   TwemProxy support added (by SE.Redis)
   Added some unit tests, click project site link for details
 
-=================== Extensibility Changes (normal usage still same) ===================
+=================== StackExchange.Redis Client Library Above ===================
+
+Please note that BookSleeve is now abandoned in favor of StackExchange.Redis. However, since SE.Redis was only 
+released in March of 2014, I've decided to leave the latest BookSleeve implementation available. I highly 
+recommend you move to the SE.Redis version, though.
+
+=================== BookSleeve Redis Client Library Below ===================
 
 V1.1.2: Now partially covered by unit tests, improved some necessary locking behavior, minor edge case fixes
 

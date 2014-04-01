@@ -24,19 +24,124 @@
             The greatest value of the combined elements is used
             </summary>
         </member>
+        <member name="T:StackExchange.Redis.ExtensionMethods">
+            <summary>
+            Utility methods
+            </summary>
+        </member>
+        <member name="M:StackExchange.Redis.ExtensionMethods.ToStringDictionary(StackExchange.Redis.HashEntry[])">
+            <summary>
+            Create a dictionary from an array of HashEntry values 
+            </summary>
+        </member>
+        <member name="M:StackExchange.Redis.ExtensionMethods.ToDictionary(StackExchange.Redis.HashEntry[])">
+            <summary>
+            Create a dictionary from an array of HashEntry values 
+            </summary>
+        </member>
+        <member name="M:StackExchange.Redis.ExtensionMethods.ToStringDictionary(StackExchange.Redis.SortedSetEntry[])">
+            <summary>
+            Create a dictionary from an array of SortedSetEntry values 
+            </summary>
+        </member>
+        <member name="M:StackExchange.Redis.ExtensionMethods.ToDictionary(StackExchange.Redis.SortedSetEntry[])">
+            <summary>
+            Create a dictionary from an array of SortedSetEntry values 
+            </summary>
+        </member>
+        <member name="M:StackExchange.Redis.ExtensionMethods.ToStringDictionary(System.Collections.Generic.KeyValuePair{StackExchange.Redis.RedisKey,StackExchange.Redis.RedisValue}[])">
+            <summary>
+            Create a dictionary from an array of key/value pairs
+            </summary>
+        </member>
+        <member name="M:StackExchange.Redis.ExtensionMethods.ToDictionary(System.Collections.Generic.KeyValuePair{StackExchange.Redis.RedisKey,StackExchange.Redis.RedisValue}[])">
+            <summary>
+            Create a dictionary from an array of key/value pairs
+            </summary>
+        </member>
+        <member name="M:StackExchange.Redis.ExtensionMethods.ToDictionary(System.Collections.Generic.KeyValuePair{System.String,System.String}[])">
+            <summary>
+            Create a dictionary from an array of string pairs
+            </summary>
+        </member>
+        <member name="T:StackExchange.Redis.HashEntry">
+            <summary>
+            Describes a hash-field (a name/value pair)
+            </summary>
+        </member>
+        <member name="M:StackExchange.Redis.HashEntry.#ctor(StackExchange.Redis.RedisValue,StackExchange.Redis.RedisValue)">
+            <summary>
+            Initializes a HashEntry value
+            </summary>
+        </member>
+        <member name="M:StackExchange.Redis.HashEntry.op_Implicit(StackExchange.Redis.HashEntry)~System.Collections.Generic.KeyValuePair{StackExchange.Redis.RedisValue,StackExchange.Redis.RedisValue}">
+            <summary>
+            Converts to a key/value pair
+            </summary>
+        </member>
+        <member name="M:StackExchange.Redis.HashEntry.op_Implicit(System.Collections.Generic.KeyValuePair{StackExchange.Redis.RedisValue,StackExchange.Redis.RedisValue})~StackExchange.Redis.HashEntry">
+            <summary>
+            Converts from a key/value pair
+            </summary>
+        </member>
+        <member name="M:StackExchange.Redis.HashEntry.ToString">
+            <summary>
+            See Object.ToString()
+            </summary>
+        </member>
+        <member name="M:StackExchange.Redis.HashEntry.GetHashCode">
+            <summary>
+            See Object.GetHashCode()
+            </summary>
+        </member>
+        <member name="M:StackExchange.Redis.HashEntry.Equals(System.Object)">
+            <summary>
+            Compares two values for equality
+            </summary>
+        </member>
+        <member name="M:StackExchange.Redis.HashEntry.Equals(StackExchange.Redis.HashEntry)">
+            <summary>
+            Compares two values for equality
+            </summary>
+        </member>
+        <member name="M:StackExchange.Redis.HashEntry.op_Equality(StackExchange.Redis.HashEntry,StackExchange.Redis.HashEntry)">
+            <summary>
+            Compares two values for equality
+            </summary>
+        </member>
+        <member name="M:StackExchange.Redis.HashEntry.op_Inequality(StackExchange.Redis.HashEntry,StackExchange.Redis.HashEntry)">
+            <summary>
+            Compares two values for non-equality
+            </summary>
+        </member>
+        <member name="P:StackExchange.Redis.HashEntry.Name">
+            <summary>
+            The name of the hash field
+            </summary>
+        </member>
+        <member name="P:StackExchange.Redis.HashEntry.Value">
+            <summary>
+            The value of the hash field
+            </summary>
+        </member>
+        <member name="P:StackExchange.Redis.HashEntry.Key">
+            <summary>
+            The name of the hash field
+            </summary>
+        </member>
         <member name="T:StackExchange.Redis.InternalErrorEventArgs">
             <summary>
             Describes internal errors (mainly intended for debugging)
             </summary>
         </member>
-        <member name="P:StackExchange.Redis.InternalErrorEventArgs.EndPoint">
-            <summary>
-            Gets the failing server-endpoint (this can be null)
-            </summary>
-        </member>
         <member name="P:StackExchange.Redis.InternalErrorEventArgs.ConnectionType">
             <summary>
             Gets the connection-type of the failing connection
+            </summary>
+        </member>
+        <member name="P:StackExchange.Redis.InternalErrorEventArgs.EndPoint">
+            <summary>
+            Gets the failing server-endpoint (this can be null)
             </summary>
         </member>
         <member name="P:StackExchange.Redis.InternalErrorEventArgs.Exception">
@@ -255,16 +360,6 @@
             Address (host and port) of the client
             </summary>
         </member>
-        <member name="P:StackExchange.Redis.ClientInfo.Host">
-            <summary>
-            The host of the client (typically an IP address)
-            </summary>
-        </member>
-        <member name="P:StackExchange.Redis.ClientInfo.Port">
-            <summary>
-            The port of the client
-            </summary>
-        </member>
         <member name="P:StackExchange.Redis.ClientInfo.AgeSeconds">
             <summary>
             total duration of the connection in seconds
@@ -296,6 +391,11 @@
             N: no specific flag set
             </summary>
         </member>
+        <member name="P:StackExchange.Redis.ClientInfo.Host">
+            <summary>
+            The host of the client (typically an IP address)
+            </summary>
+        </member>
         <member name="P:StackExchange.Redis.ClientInfo.IdleSeconds">
             <summary>
             idle time of the connection in seconds
@@ -314,6 +414,11 @@
         <member name="P:StackExchange.Redis.ClientInfo.PatternSubscriptionCount">
             <summary>
             number of pattern matching subscriptions
+            </summary>
+        </member>
+        <member name="P:StackExchange.Redis.ClientInfo.Port">
+            <summary>
+            The port of the client
             </summary>
         </member>
         <member name="P:StackExchange.Redis.ClientInfo.Raw">
@@ -357,6 +462,16 @@
             Create a new SlotRange value
             </summary>
         </member>
+        <member name="M:StackExchange.Redis.SlotRange.op_Inequality(StackExchange.Redis.SlotRange,StackExchange.Redis.SlotRange)">
+            <summary>
+            Indicates whether two ranges are not equal
+            </summary>
+        </member>
+        <member name="M:StackExchange.Redis.SlotRange.op_Equality(StackExchange.Redis.SlotRange,StackExchange.Redis.SlotRange)">
+            <summary>
+            Indicates whether two ranges are equal
+            </summary>
+        </member>
         <member name="M:StackExchange.Redis.SlotRange.TryParse(System.String,StackExchange.Redis.SlotRange@)">
             <summary>
             Try to parse a string as a range
@@ -370,16 +485,6 @@
         <member name="M:StackExchange.Redis.SlotRange.Equals(System.Object)">
             <summary>
             See Object.Equals
-            </summary>
-        </member>
-        <member name="M:StackExchange.Redis.SlotRange.op_Equality(StackExchange.Redis.SlotRange,StackExchange.Redis.SlotRange)">
-            <summary>
-            Indicates whether two ranges are equal
-            </summary>
-        </member>
-        <member name="M:StackExchange.Redis.SlotRange.op_Inequality(StackExchange.Redis.SlotRange,StackExchange.Redis.SlotRange)">
-            <summary>
-            Indicates whether two ranges are not equal
             </summary>
         </member>
         <member name="M:StackExchange.Redis.SlotRange.Equals(StackExchange.Redis.SlotRange)">
@@ -564,24 +669,24 @@
             Enforces that the given hash-field must not exist
             </summary>
         </member>
-        <member name="M:StackExchange.Redis.Condition.StringEqual(StackExchange.Redis.RedisKey,StackExchange.Redis.RedisValue)">
-            <summary>
-            Enforces that the given key must have the specified value
-            </summary>
-        </member>
         <member name="M:StackExchange.Redis.Condition.KeyExists(StackExchange.Redis.RedisKey)">
             <summary>
             Enforces that the given key must exist
             </summary>
         </member>
-        <member name="M:StackExchange.Redis.Condition.StringNotEqual(StackExchange.Redis.RedisKey,StackExchange.Redis.RedisValue)">
-            <summary>
-            Enforces that the given key must not have the specified value
-            </summary>
-        </member>
         <member name="M:StackExchange.Redis.Condition.KeyNotExists(StackExchange.Redis.RedisKey)">
             <summary>
             Enforces that the given key must not exist
+            </summary>
+        </member>
+        <member name="M:StackExchange.Redis.Condition.StringEqual(StackExchange.Redis.RedisKey,StackExchange.Redis.RedisValue)">
+            <summary>
+            Enforces that the given key must have the specified value
+            </summary>
+        </member>
+        <member name="M:StackExchange.Redis.Condition.StringNotEqual(StackExchange.Redis.RedisKey,StackExchange.Redis.RedisValue)">
+            <summary>
+            Enforces that the given key must not have the specified value
             </summary>
         </member>
         <member name="T:StackExchange.Redis.ConditionResult">
@@ -629,11 +734,6 @@
             Returns the effective configuration string for this configuration
             </summary>
         </member>
-        <member name="P:StackExchange.Redis.ConfigurationOptions.ChannelPrefix">
-            <summary>
-            Automatically encodes and decodes channels
-            </summary>
-        </member>
         <member name="E:StackExchange.Redis.ConfigurationOptions.CertificateSelection">
             <summary>
             A LocalCertificateSelectionCallback delegate responsible for selecting the certificate used for authentication; note
@@ -646,15 +746,9 @@
             that this cannot be specified in the configuration-string.
             </summary>
         </member>
-        <member name="P:StackExchange.Redis.ConfigurationOptions.SocketManager">
+        <member name="P:StackExchange.Redis.ConfigurationOptions.AbortOnConnectFail">
             <summary>
-            Gets or sets the SocketManager instance to be used with these options; if this is null a per-multiplexer
-            SocketManager is created automatically.
-            </summary>
-        </member>
-        <member name="P:StackExchange.Redis.ConfigurationOptions.Proxy">
-            <summary>
-            Indicates whether admin operations should be allowed
+            Gets or sets whether connect/configuration timeouts should be explicitly notified via a TimeoutException
             </summary>
         </member>
         <member name="P:StackExchange.Redis.ConfigurationOptions.AllowAdmin">
@@ -662,9 +756,9 @@
             Indicates whether admin operations should be allowed
             </summary>
         </member>
-        <member name="P:StackExchange.Redis.ConfigurationOptions.ResolveDns">
+        <member name="P:StackExchange.Redis.ConfigurationOptions.ChannelPrefix">
             <summary>
-            Indicates whether endpoints should be resolved via DNS before connecting
+            Automatically encodes and decodes channels
             </summary>
         </member>
         <member name="P:StackExchange.Redis.ConfigurationOptions.ClientName">
@@ -707,9 +801,25 @@
             The password to use to authenticate with the server
             </summary>
         </member>
+        <member name="P:StackExchange.Redis.ConfigurationOptions.Proxy">
+            <summary>
+            Indicates whether admin operations should be allowed
+            </summary>
+        </member>
+        <member name="P:StackExchange.Redis.ConfigurationOptions.ResolveDns">
+            <summary>
+            Indicates whether endpoints should be resolved via DNS before connecting
+            </summary>
+        </member>
         <member name="P:StackExchange.Redis.ConfigurationOptions.ServiceName">
             <summary>
             The service name used to resolve a service via sentinel
+            </summary>
+        </member>
+        <member name="P:StackExchange.Redis.ConfigurationOptions.SocketManager">
+            <summary>
+            Gets or sets the SocketManager instance to be used with these options; if this is null a per-multiplexer
+            SocketManager is created automatically.
             </summary>
         </member>
         <member name="P:StackExchange.Redis.ConfigurationOptions.SslHost">
@@ -730,11 +840,6 @@
         <member name="P:StackExchange.Redis.ConfigurationOptions.WriteBuffer">
             <summary>
             The size of the output buffer to use
-            </summary>
-        </member>
-        <member name="P:StackExchange.Redis.ConfigurationOptions.AbortOnConnectFail">
-            <summary>
-            Gets or sets whether connect/configuration timeouts should be explicitly notified via a TimeoutException
             </summary>
         </member>
         <member name="T:StackExchange.Redis.ConnectionCounters">
@@ -772,14 +877,15 @@
             Indicates if there are any pending items or failures on this connection
             </summary>
         </member>
+        <member name="P:StackExchange.Redis.ConnectionCounters.NonPreferredEndpointCount">
+            <summary>
+            Indicates the total number of messages despatched to a non-preferred endpoint, for example sent to a master
+            when the caller stated a preference of slave
+            </summary>
+        </member>
         <member name="P:StackExchange.Redis.ConnectionCounters.OperationCount">
             <summary>
             The number of operations performed on this connection
-            </summary>
-        </member>
-        <member name="P:StackExchange.Redis.ConnectionCounters.Subscriptions">
-            <summary>
-            The number of subscriptions (with and without patterns) currently held against this connection
             </summary>
         </member>
         <member name="P:StackExchange.Redis.ConnectionCounters.PendingUnsentItems">
@@ -802,6 +908,11 @@
             The number of sockets used by this logical connection (total, including reconnects)
             </summary>
         </member>
+        <member name="P:StackExchange.Redis.ConnectionCounters.Subscriptions">
+            <summary>
+            The number of subscriptions (with and without patterns) currently held against this connection
+            </summary>
+        </member>
         <member name="P:StackExchange.Redis.ConnectionCounters.TotalOutstanding">
             <summary>
             Indicates the total number of outstanding items against this connection
@@ -812,25 +923,19 @@
             Indicates the total number of writers items against this connection
             </summary>
         </member>
-        <member name="P:StackExchange.Redis.ConnectionCounters.NonPreferredEndpointCount">
-            <summary>
-            Indicates the total number of messages despatched to a non-preferred endpoint, for example sent to a master
-            when the caller stated a preference of slave
-            </summary>
-        </member>
         <member name="T:StackExchange.Redis.ConnectionFailedEventArgs">
             <summary>
             Contains information about a server connection failure
             </summary>
         </member>
-        <member name="P:StackExchange.Redis.ConnectionFailedEventArgs.EndPoint">
-            <summary>
-            Gets the failing server-endpoint
-            </summary>
-        </member>
         <member name="P:StackExchange.Redis.ConnectionFailedEventArgs.ConnectionType">
             <summary>
             Gets the connection-type of the failing connection
+            </summary>
+        </member>
+        <member name="P:StackExchange.Redis.ConnectionFailedEventArgs.EndPoint">
+            <summary>
+            Gets the failing server-endpoint
             </summary>
         </member>
         <member name="P:StackExchange.Redis.ConnectionFailedEventArgs.Exception">
@@ -891,6 +996,11 @@
         <member name="F:StackExchange.Redis.ConnectionFailureType.Loading">
             <summary>
             The database is loading and is not available for use
+            </summary>
+        </member>
+        <member name="F:StackExchange.Redis.ConnectionFailureType.UnableToConnect">
+            <summary>
+            It has not been possible to create an intial connection to the redis server(s)
             </summary>
         </member>
         <member name="T:StackExchange.Redis.ConnectionMultiplexer">
@@ -1153,14 +1263,14 @@
             A list of endpoints
             </summary>
         </member>
-        <member name="M:StackExchange.Redis.EndPointCollection.TryParse(System.String)">
-            <summary>
-            Attempt to parse a string into an EndPoint
-            </summary>
-        </member>
         <member name="M:StackExchange.Redis.EndPointCollection.ToString(System.Net.EndPoint)">
             <summary>
             Format an endpoint
+            </summary>
+        </member>
+        <member name="M:StackExchange.Redis.EndPointCollection.TryParse(System.String)">
+            <summary>
+            Attempt to parse a string into an EndPoint
             </summary>
         </member>
         <member name="M:StackExchange.Redis.EndPointCollection.Add(System.String)">
@@ -1286,6 +1396,11 @@
             <returns>The observed latency.</returns>
             <remarks>http://redis.io/commands/ping</remarks>
         </member>
+        <member name="M:StackExchange.Redis.IRedisAsync.TryWait(System.Threading.Tasks.Task)">
+            <summary>
+            Wait for a given asynchronous operation to complete (or timeout), reporting which
+            </summary>
+        </member>
         <member name="M:StackExchange.Redis.IRedisAsync.Wait(System.Threading.Tasks.Task)">
             <summary>
             Wait for a given asynchronous operation to complete (or timeout)
@@ -1299,11 +1414,6 @@
         <member name="M:StackExchange.Redis.IRedisAsync.WaitAll(System.Threading.Tasks.Task[])">
             <summary>
             Wait for the given asynchronous operations to complete (or timeout)
-            </summary>
-        </member>
-        <member name="M:StackExchange.Redis.IRedisAsync.TryWait(System.Threading.Tasks.Task)">
-            <summary>
-            Wait for a given asynchronous operation to complete (or timeout), reporting which
             </summary>
         </member>
         <member name="P:StackExchange.Redis.IRedisAsync.Multiplexer">
@@ -1406,7 +1516,7 @@
             <returns>number of fields in the hash, or 0 when key does not exist.</returns>
             <remarks>http://redis.io/commands/hlen</remarks>
         </member>
-        <member name="M:StackExchange.Redis.IDatabaseAsync.HashSetAsync(StackExchange.Redis.RedisKey,System.Collections.Generic.KeyValuePair{StackExchange.Redis.RedisValue,StackExchange.Redis.RedisValue}[],StackExchange.Redis.CommandFlags)">
+        <member name="M:StackExchange.Redis.IDatabaseAsync.HashSetAsync(StackExchange.Redis.RedisKey,StackExchange.Redis.HashEntry[],StackExchange.Redis.CommandFlags)">
             <summary>
             Sets the specified fields to their respective values in the hash stored at key. This command overwrites any existing fields in the hash. If key does not exist, a new key holding a hash is created.
             </summary>
@@ -1499,6 +1609,13 @@
             <summary>Remove the existing timeout on key, turning the key from volatile (a key with an expire set) to persistent (a key that will never expire as no timeout is associated).</summary>
             <returns>1 if the timeout was removed. 0 if key does not exist or does not have an associated timeout.</returns>
             <remarks>http://redis.io/commands/persist</remarks>
+        </member>
+        <member name="M:StackExchange.Redis.IDatabaseAsync.KeyRandomAsync(StackExchange.Redis.CommandFlags)">
+            <summary>
+            Return a random key from the currently selected database.
+            </summary>
+            <returns>the random key, or nil when the database is empty.</returns>
+            <remarks>http://redis.io/commands/randomkey</remarks>
         </member>
         <member name="M:StackExchange.Redis.IDatabaseAsync.KeyRenameAsync(StackExchange.Redis.RedisKey,StackExchange.Redis.RedisKey,StackExchange.Redis.When,StackExchange.Redis.CommandFlags)">
             <summary>
@@ -1663,13 +1780,6 @@
             Takes a lock (specifying a token value) if it is not already taken
             </summary>
         </member>
-        <member name="M:StackExchange.Redis.IDatabaseAsync.KeyRandomAsync(StackExchange.Redis.CommandFlags)">
-            <summary>
-            Return a random key from the currently selected database.
-            </summary>
-            <returns>the random key, or nil when the database is empty.</returns>
-            <remarks>http://redis.io/commands/randomkey</remarks>
-        </member>
         <member name="M:StackExchange.Redis.IDatabaseAsync.ScriptEvaluateAsync(System.String,StackExchange.Redis.RedisKey[],StackExchange.Redis.RedisValue[],StackExchange.Redis.CommandFlags)">
             <summary>
             Execute a Lua script against the server
@@ -1821,7 +1931,7 @@
             <returns>True if the value was added, False if it already existed (the score is still updated)</returns>
             <remarks>http://redis.io/commands/zadd</remarks>
         </member>
-        <member name="M:StackExchange.Redis.IDatabaseAsync.SortedSetAddAsync(StackExchange.Redis.RedisKey,System.Collections.Generic.KeyValuePair{StackExchange.Redis.RedisValue,System.Double}[],StackExchange.Redis.CommandFlags)">
+        <member name="M:StackExchange.Redis.IDatabaseAsync.SortedSetAddAsync(StackExchange.Redis.RedisKey,StackExchange.Redis.SortedSetEntry[],StackExchange.Redis.CommandFlags)">
             <summary>
             Adds all the specified members with the specified scores to the sorted set stored at key. If a specified member is already a member of the sorted set, the score is updated and the element reinserted at the right position to ensure the correct ordering.
             </summary>
@@ -2247,7 +2357,14 @@
             <returns>number of fields in the hash, or 0 when key does not exist.</returns>
             <remarks>http://redis.io/commands/hlen</remarks>
         </member>
-        <member name="M:StackExchange.Redis.IDatabase.HashSet(StackExchange.Redis.RedisKey,System.Collections.Generic.KeyValuePair{StackExchange.Redis.RedisValue,StackExchange.Redis.RedisValue}[],StackExchange.Redis.CommandFlags)">
+        <member name="M:StackExchange.Redis.IDatabase.HashScan(StackExchange.Redis.RedisKey,StackExchange.Redis.RedisValue,System.Int32,StackExchange.Redis.CommandFlags)">
+            <summary>
+            The HSCAN command is used to incrementally iterate over a hash
+            </summary>
+            <returns>yields all elements of the hash.</returns>
+            <remarks>http://redis.io/commands/hscan</remarks>
+        </member>
+        <member name="M:StackExchange.Redis.IDatabase.HashSet(StackExchange.Redis.RedisKey,StackExchange.Redis.HashEntry[],StackExchange.Redis.CommandFlags)">
             <summary>
             Sets the specified fields to their respective values in the hash stored at key. This command overwrites any existing fields in the hash. If key does not exist, a new key holding a hash is created.
             </summary>
@@ -2334,6 +2451,13 @@
             <summary>Remove the existing timeout on key, turning the key from volatile (a key with an expire set) to persistent (a key that will never expire as no timeout is associated).</summary>
             <returns>1 if the timeout was removed. 0 if key does not exist or does not have an associated timeout.</returns>
             <remarks>http://redis.io/commands/persist</remarks>
+        </member>
+        <member name="M:StackExchange.Redis.IDatabase.KeyRandom(StackExchange.Redis.CommandFlags)">
+            <summary>
+            Return a random key from the currently selected database.
+            </summary>
+            <returns>the random key, or nil when the database is empty.</returns>
+            <remarks>http://redis.io/commands/randomkey</remarks>
         </member>
         <member name="M:StackExchange.Redis.IDatabase.KeyRename(StackExchange.Redis.RedisKey,StackExchange.Redis.RedisKey,StackExchange.Redis.When,StackExchange.Redis.CommandFlags)">
             <summary>
@@ -2498,13 +2622,6 @@
             Takes a lock (specifying a token value) if it is not already taken
             </summary>
         </member>
-        <member name="M:StackExchange.Redis.IDatabase.KeyRandom(StackExchange.Redis.CommandFlags)">
-            <summary>
-            Return a random key from the currently selected database.
-            </summary>
-            <returns>the random key, or nil when the database is empty.</returns>
-            <remarks>http://redis.io/commands/randomkey</remarks>
-        </member>
         <member name="M:StackExchange.Redis.IDatabase.ScriptEvaluate(System.String,StackExchange.Redis.RedisKey[],StackExchange.Redis.RedisValue[],StackExchange.Redis.CommandFlags)">
             <summary>
             Execute a Lua script against the server
@@ -2629,7 +2746,7 @@
         </member>
         <member name="M:StackExchange.Redis.IDatabase.SetScan(StackExchange.Redis.RedisKey,StackExchange.Redis.RedisValue,System.Int32,StackExchange.Redis.CommandFlags)">
             <summary>
-            The SSCAN command is used to incrementally iterate over a collection of elements.
+            The SSCAN command is used to incrementally iterate over set
             </summary>
             <returns>yields all elements of the set.</returns>
             <remarks>http://redis.io/commands/sscan</remarks>
@@ -2663,7 +2780,7 @@
             <returns>True if the value was added, False if it already existed (the score is still updated)</returns>
             <remarks>http://redis.io/commands/zadd</remarks>
         </member>
-        <member name="M:StackExchange.Redis.IDatabase.SortedSetAdd(StackExchange.Redis.RedisKey,System.Collections.Generic.KeyValuePair{StackExchange.Redis.RedisValue,System.Double}[],StackExchange.Redis.CommandFlags)">
+        <member name="M:StackExchange.Redis.IDatabase.SortedSetAdd(StackExchange.Redis.RedisKey,StackExchange.Redis.SortedSetEntry[],StackExchange.Redis.CommandFlags)">
             <summary>
             Adds all the specified members with the specified scores to the sorted set stored at key. If a specified member is already a member of the sorted set, the score is updated and the element reinserted at the right position to ensure the correct ordering.
             </summary>
@@ -2780,6 +2897,13 @@
             </summary>
             <returns> the number of elements removed.</returns>
             <remarks>http://redis.io/commands/zremrangebyscore</remarks>
+        </member>
+        <member name="M:StackExchange.Redis.IDatabase.SortedSetScan(StackExchange.Redis.RedisKey,StackExchange.Redis.RedisValue,System.Int32,StackExchange.Redis.CommandFlags)">
+            <summary>
+            The ZSCAN command is used to incrementally iterate over a sorted set
+            </summary>
+            <returns>yields all elements of the sorted set.</returns>
+            <remarks>http://redis.io/commands/zscan</remarks>
         </member>
         <member name="M:StackExchange.Redis.IDatabase.SortedSetScore(StackExchange.Redis.RedisKey,StackExchange.Redis.RedisValue,StackExchange.Redis.CommandFlags)">
             <summary>
@@ -3281,6 +3405,18 @@
             <summary>Asks the redis server to shutdown, killing all connections. Please FULLY read the notes on the SHUTDOWN command.</summary>
             <remarks>http://redis.io/commands/shutdown</remarks>
         </member>
+        <member name="M:StackExchange.Redis.IServer.SlaveOf(System.Net.EndPoint,StackExchange.Redis.CommandFlags)">
+            <summary>
+            The SLAVEOF command can change the replication settings of a slave on the fly. If a Redis server is already acting as slave, specifying a null master will turn off the replication, turning the Redis server into a MASTER. Specifying a non-null master will make the server a slave of another server listening at the specified hostname and port.
+            </summary>
+            <remarks>http://redis.io/commands/slaveof</remarks>
+        </member>
+        <member name="M:StackExchange.Redis.IServer.SlaveOfAsync(System.Net.EndPoint,StackExchange.Redis.CommandFlags)">
+            <summary>
+            The SLAVEOF command can change the replication settings of a slave on the fly. If a Redis server is already acting as slave, specifying a null master will turn off the replication, turning the Redis server into a MASTER. Specifying a non-null master will make the server a slave of another server listening at the specified hostname and port.
+            </summary>
+            <remarks>http://redis.io/commands/slaveof</remarks>
+        </member>
         <member name="M:StackExchange.Redis.IServer.SlowlogGet(System.Int32,StackExchange.Redis.CommandFlags)">
             <summary>
             To read the slow log the SLOWLOG GET command is used, that returns every entry in the slow log. It is possible to return only the N most recent entries passing an additional argument to the command (for instance SLOWLOG GET 10).
@@ -3399,6 +3535,16 @@
             A redis connection used as the subscriber in a pub/sub scenario
             </summary>
         </member>
+        <member name="M:StackExchange.Redis.ISubscriber.IdentifyEndpoint(StackExchange.Redis.RedisChannel,StackExchange.Redis.CommandFlags)">
+            <summary>
+            Inidicate exactly which redis server we are talking to
+            </summary>
+        </member>
+        <member name="M:StackExchange.Redis.ISubscriber.IdentifyEndpointAsync(StackExchange.Redis.RedisChannel,StackExchange.Redis.CommandFlags)">
+            <summary>
+            Inidicate exactly which redis server we are talking to
+            </summary>
+        </member>
         <member name="M:StackExchange.Redis.ISubscriber.IsConnected(StackExchange.Redis.RedisChannel)">
             <summary>
             Indicates whether the instance can communicate with the server;
@@ -3421,6 +3567,13 @@
             <returns>the number of clients that received the message.</returns>
             <remarks>http://redis.io/commands/publish</remarks>
         </member>
+        <member name="M:StackExchange.Redis.ISubscriber.Subscribe(StackExchange.Redis.RedisChannel,System.Action{StackExchange.Redis.RedisChannel,StackExchange.Redis.RedisValue},StackExchange.Redis.CommandFlags)">
+            <summary>
+            Subscribe to perform some operation when a change to the preferred/active node is broadcast.
+            </summary>
+            <remarks>http://redis.io/commands/subscribe</remarks>
+            <remarks>http://redis.io/commands/psubscribe</remarks>
+        </member>
         <member name="M:StackExchange.Redis.ISubscriber.SubscribeAsync(StackExchange.Redis.RedisChannel,System.Action{StackExchange.Redis.RedisChannel,StackExchange.Redis.RedisValue},StackExchange.Redis.CommandFlags)">
             <summary>
             Subscribe to perform some operation when a change to the preferred/active node is broadcast.
@@ -3428,21 +3581,11 @@
             <remarks>http://redis.io/commands/subscribe</remarks>
             <remarks>http://redis.io/commands/psubscribe</remarks>
         </member>
-        <member name="M:StackExchange.Redis.ISubscriber.UnsubscribeAsync(StackExchange.Redis.RedisChannel,System.Action{StackExchange.Redis.RedisChannel,StackExchange.Redis.RedisValue},StackExchange.Redis.CommandFlags)">
+        <member name="M:StackExchange.Redis.ISubscriber.SubscribedEndpoint(StackExchange.Redis.RedisChannel)">
             <summary>
-            Unsubscribe from a specified message channel; note; if no handler is specified, the subscription is cancelled regardless
-            of the subscribers; if a handler is specified, the subscription is only cancelled if this handler is the 
-            last handler remaining against the channel
+            Inidicate to which redis server we are actively subscribed for a given channel; returns null if
+            the channel is not actively subscribed
             </summary>
-            <remarks>http://redis.io/commands/unsubscribe</remarks>
-            <remarks>http://redis.io/commands/punsubscribe</remarks>
-        </member>
-        <member name="M:StackExchange.Redis.ISubscriber.Subscribe(StackExchange.Redis.RedisChannel,System.Action{StackExchange.Redis.RedisChannel,StackExchange.Redis.RedisValue},StackExchange.Redis.CommandFlags)">
-            <summary>
-            Subscribe to perform some operation when a change to the preferred/active node is broadcast.
-            </summary>
-            <remarks>http://redis.io/commands/subscribe</remarks>
-            <remarks>http://redis.io/commands/psubscribe</remarks>
         </member>
         <member name="M:StackExchange.Redis.ISubscriber.Unsubscribe(StackExchange.Redis.RedisChannel,System.Action{StackExchange.Redis.RedisChannel,StackExchange.Redis.RedisValue},StackExchange.Redis.CommandFlags)">
             <summary>
@@ -3467,21 +3610,14 @@
             <remarks>http://redis.io/commands/unsubscribe</remarks>
             <remarks>http://redis.io/commands/punsubscribe</remarks>
         </member>
-        <member name="M:StackExchange.Redis.ISubscriber.IdentifyEndpoint(StackExchange.Redis.RedisChannel,StackExchange.Redis.CommandFlags)">
+        <member name="M:StackExchange.Redis.ISubscriber.UnsubscribeAsync(StackExchange.Redis.RedisChannel,System.Action{StackExchange.Redis.RedisChannel,StackExchange.Redis.RedisValue},StackExchange.Redis.CommandFlags)">
             <summary>
-            Inidicate exactly which redis server we are talking to
+            Unsubscribe from a specified message channel; note; if no handler is specified, the subscription is cancelled regardless
+            of the subscribers; if a handler is specified, the subscription is only cancelled if this handler is the 
+            last handler remaining against the channel
             </summary>
-        </member>
-        <member name="M:StackExchange.Redis.ISubscriber.IdentifyEndpointAsync(StackExchange.Redis.RedisChannel,StackExchange.Redis.CommandFlags)">
-            <summary>
-            Inidicate exactly which redis server we are talking to
-            </summary>
-        </member>
-        <member name="M:StackExchange.Redis.ISubscriber.SubscribedEndpoint(StackExchange.Redis.RedisChannel)">
-            <summary>
-            Inidicate to which redis server we are actively subscribed for a given channel; returns null if
-            the channel is not actively subscribed
-            </summary>
+            <remarks>http://redis.io/commands/unsubscribe</remarks>
+            <remarks>http://redis.io/commands/punsubscribe</remarks>
         </member>
         <member name="T:StackExchange.Redis.CommandFlags">
             <summary>
@@ -3606,6 +3742,11 @@
             Indicates that a socket has connected
             </summary>
         </member>
+        <member name="M:StackExchange.Redis.ISocketCallback.Error">
+            <summary>
+            Indicates that the socket has signalled an error condition
+            </summary>
+        </member>
         <member name="M:StackExchange.Redis.ISocketCallback.Read">
             <summary>
             Indicates that data is available on the socket, and that the consumer should read synchronously from the socket while there is data
@@ -3614,11 +3755,6 @@
         <member name="M:StackExchange.Redis.ISocketCallback.StartReading">
             <summary>
             Indicates that we cannot know whether data is available, and that the consume should commence reading asynchronously
-            </summary>
-        </member>
-        <member name="M:StackExchange.Redis.ISocketCallback.Error">
-            <summary>
-            Indicates that the socket has signalled an error condition
             </summary>
         </member>
         <member name="T:StackExchange.Redis.RedisResult">
@@ -3729,6 +3865,11 @@
         <member name="M:StackExchange.Redis.RedisResult.op_Explicit(StackExchange.Redis.RedisResult)~StackExchange.Redis.RedisResult[]">
             <summary>
             Interprets the result as an array of RedisResult
+            </summary>
+        </member>
+        <member name="P:StackExchange.Redis.RedisResult.IsNull">
+            <summary>
+            Indicates whether this result was a null result
             </summary>
         </member>
         <member name="T:StackExchange.Redis.RedisFeatures">
@@ -4024,9 +4165,19 @@
             Returns a string representation of the value
             </summary>
         </member>
+        <member name="M:StackExchange.Redis.RedisValue.CompareTo(StackExchange.Redis.RedisValue)">
+            <summary>
+            Compare against a RedisValue for relative order
+            </summary>
+        </member>
         <member name="M:StackExchange.Redis.RedisValue.op_Implicit(System.Int32)~StackExchange.Redis.RedisValue">
             <summary>
             Creates a new RedisValue from an Int32
+            </summary>
+        </member>
+        <member name="M:StackExchange.Redis.RedisValue.op_Implicit(System.Nullable{System.Int32})~StackExchange.Redis.RedisValue">
+            <summary>
+            Creates a new RedisValue from a nullable Int32
             </summary>
         </member>
         <member name="M:StackExchange.Redis.RedisValue.op_Implicit(System.Int64)~StackExchange.Redis.RedisValue">
@@ -4034,9 +4185,19 @@
             Creates a new RedisValue from an Int64
             </summary>
         </member>
+        <member name="M:StackExchange.Redis.RedisValue.op_Implicit(System.Nullable{System.Int64})~StackExchange.Redis.RedisValue">
+            <summary>
+            Creates a new RedisValue from a nullable Int64
+            </summary>
+        </member>
         <member name="M:StackExchange.Redis.RedisValue.op_Implicit(System.Double)~StackExchange.Redis.RedisValue">
             <summary>
             Creates a new RedisValue from a Double
+            </summary>
+        </member>
+        <member name="M:StackExchange.Redis.RedisValue.op_Implicit(System.Nullable{System.Double})~StackExchange.Redis.RedisValue">
+            <summary>
+            Creates a new RedisValue from a nullable Double
             </summary>
         </member>
         <member name="M:StackExchange.Redis.RedisValue.op_Implicit(System.String)~StackExchange.Redis.RedisValue">
@@ -4052,6 +4213,11 @@
         <member name="M:StackExchange.Redis.RedisValue.op_Implicit(System.Boolean)~StackExchange.Redis.RedisValue">
             <summary>
             Creates a new RedisValue from a Boolean
+            </summary>
+        </member>
+        <member name="M:StackExchange.Redis.RedisValue.op_Implicit(System.Nullable{System.Boolean})~StackExchange.Redis.RedisValue">
+            <summary>
+            Creates a new RedisValue from a nullable Boolean
             </summary>
         </member>
         <member name="M:StackExchange.Redis.RedisValue.op_Explicit(StackExchange.Redis.RedisValue)~System.Boolean">
@@ -4179,14 +4345,14 @@
             Counters associated with the interactive (non pub-sub) connection
             </summary>
         </member>
-        <member name="P:StackExchange.Redis.ServerCounters.Subscription">
-            <summary>
-            Counters associated with the subscription (pub-sub) connection
-            </summary>
-        </member>
         <member name="P:StackExchange.Redis.ServerCounters.Other">
             <summary>
             Counters associated with other ambient activity
+            </summary>
+        </member>
+        <member name="P:StackExchange.Redis.ServerCounters.Subscription">
+            <summary>
+            Counters associated with the subscription (pub-sub) connection
             </summary>
         </member>
         <member name="P:StackExchange.Redis.ServerCounters.TotalOutstanding">
@@ -4256,11 +4422,6 @@
             Creates a new (optionally named) SocketManager instance
             </summary>
         </member>
-        <member name="M:StackExchange.Redis.SocketManager.AddRead(System.Net.Sockets.Socket,StackExchange.Redis.ISocketCallback)">
-            <summary>
-            Adds a new socket and callback to the manager
-            </summary>
-        </member>
         <member name="M:StackExchange.Redis.SocketManager.Dispose">
             <summary>
             Releases all resources associated with this instance
@@ -4269,6 +4430,86 @@
         <member name="P:StackExchange.Redis.SocketManager.Name">
             <summary>
             Gets the name of this SocketManager instance
+            </summary>
+        </member>
+        <member name="T:StackExchange.Redis.SortedSetEntry">
+            <summary>
+            Describes a sorted-set element with the corresponding value
+            </summary>
+        </member>
+        <member name="M:StackExchange.Redis.SortedSetEntry.#ctor(StackExchange.Redis.RedisValue,System.Double)">
+            <summary>
+            Initializes a SortedSetEntry value
+            </summary>
+        </member>
+        <member name="M:StackExchange.Redis.SortedSetEntry.op_Implicit(StackExchange.Redis.SortedSetEntry)~System.Collections.Generic.KeyValuePair{StackExchange.Redis.RedisValue,System.Double}">
+            <summary>
+            Converts to a key/value pair
+            </summary>
+        </member>
+        <member name="M:StackExchange.Redis.SortedSetEntry.op_Implicit(System.Collections.Generic.KeyValuePair{StackExchange.Redis.RedisValue,System.Double})~StackExchange.Redis.SortedSetEntry">
+            <summary>
+            Converts from a key/value pair
+            </summary>
+        </member>
+        <member name="M:StackExchange.Redis.SortedSetEntry.ToString">
+            <summary>
+            See Object.ToString()
+            </summary>
+        </member>
+        <member name="M:StackExchange.Redis.SortedSetEntry.GetHashCode">
+            <summary>
+            See Object.GetHashCode()
+            </summary>
+        </member>
+        <member name="M:StackExchange.Redis.SortedSetEntry.Equals(System.Object)">
+            <summary>
+            Compares two values for equality
+            </summary>
+        </member>
+        <member name="M:StackExchange.Redis.SortedSetEntry.Equals(StackExchange.Redis.SortedSetEntry)">
+            <summary>
+            Compares two values for equality
+            </summary>
+        </member>
+        <member name="M:StackExchange.Redis.SortedSetEntry.CompareTo(StackExchange.Redis.SortedSetEntry)">
+            <summary>
+            Compares two values by score
+            </summary>
+        </member>
+        <member name="M:StackExchange.Redis.SortedSetEntry.CompareTo(System.Object)">
+            <summary>
+            Compares two values by score
+            </summary>
+        </member>
+        <member name="M:StackExchange.Redis.SortedSetEntry.op_Equality(StackExchange.Redis.SortedSetEntry,StackExchange.Redis.SortedSetEntry)">
+            <summary>
+            Compares two values for equality
+            </summary>
+        </member>
+        <member name="M:StackExchange.Redis.SortedSetEntry.op_Inequality(StackExchange.Redis.SortedSetEntry,StackExchange.Redis.SortedSetEntry)">
+            <summary>
+            Compares two values for non-equality
+            </summary>
+        </member>
+        <member name="P:StackExchange.Redis.SortedSetEntry.Element">
+            <summary>
+            The unique element stored in the sorted set
+            </summary>
+        </member>
+        <member name="P:StackExchange.Redis.SortedSetEntry.Score">
+            <summary>
+            The score against the element
+            </summary>
+        </member>
+        <member name="P:StackExchange.Redis.SortedSetEntry.Value">
+            <summary>
+            The score against the element
+            </summary>
+        </member>
+        <member name="P:StackExchange.Redis.SortedSetEntry.Key">
+            <summary>
+            The unique element stored in the sorted set
             </summary>
         </member>
         <member name="T:StackExchange.Redis.SortType">
@@ -4298,14 +4539,14 @@
             Indicates whether the specified task will not hijack threads when results are set
             </summary>
         </member>
-        <member name="M:StackExchange.Redis.TaskSource.CreateDenyExecSync``1(System.Object)">
-            <summary>
-            Create a new TaskCompletionSource that will not allow result-setting threads to be hijacked
-            </summary>
-        </member>
         <member name="M:StackExchange.Redis.TaskSource.Create``1(System.Object)">
             <summary>
             Create a new TaskCompletion source
+            </summary>
+        </member>
+        <member name="M:StackExchange.Redis.TaskSource.CreateDenyExecSync``1(System.Object)">
+            <summary>
+            Create a new TaskCompletionSource that will not allow result-setting threads to be hijacked
             </summary>
         </member>
         <member name="T:StackExchange.Redis.When">

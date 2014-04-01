@@ -6,6 +6,8 @@
     using System.Text;
     using System.Threading.Tasks;
     using System.Web;
+    using System.Web.Configuration;
+    using System.Web.Hosting;
 
     /// <summary>
     /// This class contains settings for how the classes that hold the Session behave, after data
@@ -16,6 +18,21 @@
         static RedisSessionConfig()
         {
             RedisSessionConfig.SessionAccessConcurrencyLevel = 1;
+
+            // not essential, used by RedisSessionAccessor
+            try
+            {
+                // Get <sessionState> configuration element from web.config, store the cookie name
+                System.Configuration.Configuration webCfg = WebConfigurationManager.OpenWebConfiguration(
+                    HostingEnvironment.ApplicationVirtualPath);
+                SessionStateSection sessCfg = (SessionStateSection)webCfg.GetSection("system.web/sessionState");
+
+                RedisSessionConfig.SessionHttpCookieName = sessCfg.CookieName;
+                RedisSessionConfig.SessionTimeout = sessCfg.Timeout;
+            }
+            catch(Exception)
+            {
+            }
         }
 
         /// <summary>
@@ -36,5 +53,15 @@
         ///     defaults to 1
         /// </summary>
         public static int SessionAccessConcurrencyLevel { get; set; }
+
+        /// <summary>
+        /// Gets or sets the cookie name that stores the ASP.NET session ID
+        /// </summary>
+        public static string SessionHttpCookieName { get; set; }
+
+        /// <summary>
+        /// Gets or sets the session expiration duration
+        /// </summary>
+        public static TimeSpan SessionTimeout { get; set; }
     }
 }

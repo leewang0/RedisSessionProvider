@@ -153,6 +153,35 @@ to talk to a TwemProxy endpoint.
 
 At this point, your application should work, but there are additional configuration options should you need them.
 
+### Use with WebAPI, ServiceStack or other non-standard pipelines
+
+Starting in V1.2.2, RedisSessionProvider exposes an IDisposable class called RedisSessionAccessor. The best explanation
+for its use is this short example:
+
+    public class APIController ...
+	{
+		public SomeObject PostMethod(SomeParams parmesan)
+		{
+			using(var sessAcc = new RedisSessionAccessor(
+				new HttpContextWrapper(HttpContext.Current)))
+			{
+				// within this using block, you now have access to the same Session as web pages, at the
+				//		cost of possibly reading from Redis in the constructor of RedisSessionAccessor.
+				//		Keep in mind that RedisSessionProvider shares one instance of the Session 
+				//		collection between all currently serving requests, so if you happen to have another
+				//		request going on at the same instant as this constructor, it is more or less free.
+				var aha = sessAcc.Session["currentUser"]
+
+				// now here, at the } where the dispose happens, the RedisSessionAccessor will write
+				//		the changes back to Redis, just like in a normal ASP.NET Session module
+				//		SetAndReleaseItemExclusive event
+			}
+		}
+	}
+
+This is purely for flexibility and convenience. There are plenty of flame wars to be had over whether or not
+this violates RESTful webservice design practices.
+
 ### More configuration options
 
 Within the RedisSessionProvider.Config namespace, there are two other classes in addition to RedisConnectionConfig
