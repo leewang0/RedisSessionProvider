@@ -11,6 +11,9 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
     <releaseNotes>
+V1.2.1: Now using StackExchange.Redis.ConfigurationOptions internally for handling connection data
+  Updated StackExchange.Redis package reference
+      
 V1.2.0: Redis client changed from BookSleeve to StackExchange.Redis
   IRedisSerializer method signatures changed to better mesh with the new SE.Redis client calls
   Various improvements to speed and memory usage
