@@ -11,6 +11,9 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
     <releaseNotes>
+V1.2.3: RedisSessionAccessor now returns a subclass of HttpSessionStateBase for its Session property so that
+  it is more easily used.
+     
 V1.2.2: Added RedisSessionAccessor class, allowing WebAPI and non-standard pipelines to use RedisSessionProvider.
   usage details on project page.
       

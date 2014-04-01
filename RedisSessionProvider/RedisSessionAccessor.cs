@@ -6,6 +6,7 @@
     using System.Text;
     using System.Threading.Tasks;
     using System.Web;
+    using System.Web.SessionState;
 
     using Config;
 
@@ -31,15 +32,18 @@
 
             if(!string.IsNullOrEmpty(this.SessionRedisHashKey))
             {
-                this.Session = this.SharedSessions.GetSessionForBeginRequest(
-                    this.SessionRedisHashKey,
-                    (string redisKey) =>
-                    {
-                        return RedisSessionStateStoreProvider.GetItemFromRedis(
-                            redisKey,
-                            this.RequestContext,
-                            RedisSessionConfig.SessionTimeout);
-                    });
+                RedisSessionStateItemCollection items =
+                    this.SharedSessions.GetSessionForBeginRequest(
+                        this.SessionRedisHashKey,
+                        (string redisKey) =>
+                        {
+                            return RedisSessionStateStoreProvider.GetItemFromRedis(
+                                redisKey,
+                                this.RequestContext,
+                                RedisSessionConfig.SessionTimeout);
+                        });
+
+                this.Session = new FakeHttpSessionState(items);
             }
         }
 
@@ -47,7 +51,7 @@
         /// Gets a Session item collection outside of the normal ASP.NET pipeline, but will serialize back to
         ///     Redis on Dispose of RedisSessionAccessor object
         /// </summary>
-        public RedisSessionStateItemCollection Session { get; protected set; }
+        public FakeHttpSessionState Session { get; protected set; }
 
         /// <summary>
         /// Gets or sets the context of the current web request
@@ -70,17 +74,65 @@
         public void Dispose()
         {
             // record with local shared session storage that we are done with the session so it gets
-            //      cleared out sooner, but we already have a reference to the item collection so
-            //      no need for the return value from this method
-            this.SharedSessions.GetSessionForEndRequest(this.SessionRedisHashKey);
+            //      cleared out sooner
+            RedisSessionStateItemCollection items =
+                this.SharedSessions.GetSessionForEndRequest(this.SessionRedisHashKey);
 
             RedisSessionStateStoreProvider.SerializeToRedis(
                 this.RequestContext,
-                this.Session,
+                items,
                 this.SessionRedisHashKey,
                 RedisSessionConfig.SessionTimeout);
         }
 
         #endregion
+
+        public class FakeHttpSessionState : HttpSessionStateBase
+        {
+            public FakeHttpSessionState(ISessionStateItemCollection items)
+            {
+                this.Items = items;
+            }
+
+            protected ISessionStateItemCollection Items { get; set; }
+
+            public override void Add(string name, object value)
+            {
+                this.Items[name] = value;
+            }
+
+            public override void Remove(string name)
+            {
+                this.Items.Remove(name);
+            }
+
+            public override object this[string name]
+            {
+                get
+                {
+                    return this.Items[name];
+                }
+                set
+                {
+                    this.Items[name] = value;
+                }
+            }
+
+            public override System.Collections.Specialized.NameObjectCollectionBase.KeysCollection Keys
+            {
+                get
+                {
+                    return this.Items.Keys;
+                }
+            }
+
+            public override int Count
+            {
+                get
+                {
+                    return this.Items.Count;
+                }
+            }
+        }
     }
 }
