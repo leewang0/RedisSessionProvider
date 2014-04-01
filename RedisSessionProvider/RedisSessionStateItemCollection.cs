@@ -124,7 +124,7 @@
         /// <param name="redisHashData">An array of keys to values from the redis hash</param>
         /// <param name="redisConnName">The name of the connection from the redis connection wrapper</param>
         public RedisSessionStateItemCollection(
-            KeyValuePair<RedisValue, RedisValue>[] redisHashData, 
+            HashEntry[] redisHashData, 
             string redisConnName,
             byte constructorSignatureDifferentiator)
         {
@@ -147,7 +147,7 @@
             {
                 foreach (var sessDataEntry in redisHashData)
                 {
-                    string hashItemKey = sessDataEntry.Key.ToString();
+                    string hashItemKey = sessDataEntry.Name.ToString();
                     string hashItemValue = sessDataEntry.Value.ToString();
 
                     if (this.SerializedRawData.TryAdd(

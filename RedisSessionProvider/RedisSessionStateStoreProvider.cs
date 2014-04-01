@@ -284,8 +284,7 @@
 
                 if (redisItems != null)
                 {
-                    List<KeyValuePair<RedisValue, RedisValue>> setItems = 
-                        new List<KeyValuePair<RedisValue, RedisValue>>();
+                    List<HashEntry> setItems = new List<HashEntry>();
                     List<RedisValue> delItems = new List<RedisValue>();
 
                     RedisConnectionWrapper rConnWrap = RedisSessionStateStoreProvider.RedisConnWrapperFromContext(
@@ -297,7 +296,7 @@
                         if (changedObj.Value != null)
                         {
                             setItems.Add(
-                                new KeyValuePair<RedisValue, RedisValue>(
+                                new HashEntry(
                                     changedObj.Key, 
                                     changedObj.Value));
                         }
@@ -340,7 +339,7 @@
 
             try
             {
-                KeyValuePair<RedisValue, RedisValue>[] redisData = redisConn.HashGetAll(redisKey);
+                HashEntry[] redisData = redisConn.HashGetAll(redisKey);
 
                 redisConn.KeyExpire(redisKey, this.SessionTimeout, CommandFlags.FireAndForget);
 
@@ -370,7 +369,7 @@
         /// <param name="currentRedisHashId">The current Redis key name</param>
         /// <param name="redisConn">A connection to Redis</param>
         private void SerializeToRedis(
-            List<KeyValuePair<RedisValue, RedisValue>> setItems,            
+            List<HashEntry> setItems,            
             RedisValue[] delItems,
             string currentRedisHashId,
             IDatabase redisConn)
