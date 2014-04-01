@@ -111,6 +111,22 @@ order for RedisSessionProvider to know where to direct requests to Redis, you mu
 in your application (Global.asax application_start is a good place for that):
 
 	using RedisSessionProvider.Config;
+	using StackExchange.Redis
+	...
+
+	// assign your local Redis instance address, can be static
+    Application.redisConfigOpts = ConfigurationOptions.Parse("{ip}:{port}");
+	
+	// pass it to RedisSessionProvider configuration class
+	RedisConnectionConfig.GetSERedisServerConfig = (HttpContextBase context) => {
+		return new KeyValuePair<string,ConfigurationOptions>(
+			"DefaultConnection",				// if you use multiple configuration objects, please make the keys unique
+			Application.redisConfigOpts);
+	};
+
+Prior to V1.2.1, we used a separate configuration class than StackExchange.Redis. The delegate example for that is:
+
+	using RedisSessionProvider.Config;
 	...
 	RedisConnectionConfig.GetRedisServerAddress = (HttpContextBase context) => {
 		return new RedisConnectionParameters(){
@@ -122,12 +138,16 @@ in your application (Global.asax application_start is a good place for that):
 		};
 	};
 
-Why does it take a lambda function? It takes a lambda in case you want to
-load-balance across multiple Redis instances, using the context as input. This way, you can dynamically choose your 
-Redis server to suit your needs. If you only have one server, a simple function like the example will suffice.
-RedisSessionProvider may provide an IOC-based configuration method in future versions, but for now it's a static
-property. In V1.2 of the NuGet package, a proxy option was added to the connection parameters that allows you to
-specify [TwemProxy](https://github.com/twitter/twemproxy/blob/master/notes/redis.md) compatible behavior from 
+Why does it take a lambda function? It takes a lambda in case you want to load-balance across multiple Redis 
+instances, using the context as input. This way, you can dynamically choose your Redis server to suit your needs. 
+If you only have one server, a simple function like the example will suffice. RedisSessionProvider may provide an 
+IOC-based configuration method in future versions, but for now it's a static property. If you use multiple
+ConfigurationOptions objects, please make sure each one is returned with a unique key since the connections that
+are made with them are stored in a Dictionary. Different ConfigurationOptions with the same key will always
+use the first ConfigurationOption to be called.
+
+In V1.2 of the NuGet package, a proxy option was added to the connection parameters that allows you to specify 
+[TwemProxy](https://github.com/twitter/twemproxy/blob/master/notes/redis.md) compatible behavior from 
 StackExchange.Redis. By specifying this, you will have a reduced command set available, allowing RedisSessionProvider 
 to talk to a TwemProxy endpoint.
 

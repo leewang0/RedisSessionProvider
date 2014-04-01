@@ -24,16 +24,19 @@ not, please modify your web.config as follows:
 The last step in order for RedisSessionProvider to work is adding the following line to your application startup, 
 typically located within your global.asax file's Application_Start method:
 
-using RedisSessionProvider.Config;
+    using RedisSessionProvider.Config;
+	using StackExchange.Redis
+	...
 
-RedisConnectionConfig.GetRedisServerAddress = (HttpContextBase context) => {
-    return new RedisConnectionParameters(){
-        ServerAddress = "Your redis server IP or hostname",
-        ServerPort = 1234, // the port your redis server is listening on, defaults to 6379
-        Password = "12345", // if your redis server is password protected, set this, otherwise leave null
-        ServerVersion = "2.6.14" // sometimes necessary, defaults to 2.6.14
-    };
-};
+	// assign your local Redis instance address, can be static
+    Application.redisConfigOpts = ConfigurationOptions.Parse("{ip}:{port}");
+	
+	// pass it to RedisSessionProvider configuration class
+	RedisConnectionConfig.GetSERedisServerConfig = (HttpContextBase context) => {
+		return new KeyValuePair<string,ConfigurationOptions>(
+			"DefaultConnection",				// if you use multiple configuration objects, please make the keys unique
+			Application.redisConfigOpts);
+	};
 
 After that, you should be ready to go. If you do not have your Redis instance set up yet, you can turn off 
 RedisSessionProvider by changing the "mode" and "customProvider" attributes of your sessionState web.config element.
