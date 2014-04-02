@@ -76,12 +76,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <None Include="web.config.install.xdt">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="readme.txt" />
   </ItemGroup>
   <ItemGroup />
