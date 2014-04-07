@@ -414,11 +414,9 @@
         {
             if(RedisConnectionConfig.GetSERedisServerConfig != null)
             {
-                KeyValuePair<string, ConfigurationOptions> connData = 
-                    RedisConnectionConfig.GetSERedisServerConfig(context);
-                return new RedisConnectionWrapper(
-                    connData.Key,
-                    connData.Value);
+                ConnectionOption connOpt =
+                    RedisConnectionConfig.SERedisServerConfig(context);
+                return new RedisConnectionWrapper(connOpt);
             }
 #pragma warning disable 0618
             else if(RedisConnectionConfig.GetRedisServerAddress != null)
