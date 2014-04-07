@@ -9,6 +9,21 @@
 
     using StackExchange.Redis;
 
+    public class ConnectionOption {
+        /// <summary>
+        /// a unique Id for this redis instances.
+        /// </summary>
+        public string ConnectionIdentifier { get; set; }
+        /// <summary>
+        /// The options relevant to a set of redis connections
+        /// </summary>
+        public ConfigurationOptions RedisConnectionOptions { get; set; }
+        /// <summary>
+        /// The index of database will be used for storing sessions.
+        /// </summary>
+        public int DatabaseIndex { get; set; }
+    }
+
     public static class RedisConnectionConfig
     {
         static RedisConnectionConfig()
@@ -18,12 +33,42 @@
         }
 
         /// <summary>
+        /// Deprecated, use SERedisServerConfig.
         /// A delegate for returning a StackExchange.Redis.ConfigurationOptions instance which will dictate
         ///     to the StackExchange.Redis client what Redis instance to connect to for persisting session data. 
         ///     Please assign a string key to your connection as well, in case you want to connect to multiple
         ///     sets of Redis instances.
         /// </summary>
-        public static Func<HttpContextBase, KeyValuePair<string, ConfigurationOptions>> GetSERedisServerConfig = null;
+        public static Func<HttpContextBase, KeyValuePair<string, ConfigurationOptions>> GetSERedisServerConfig {
+            set {
+                if (value == null) return;
+                var local_func = value;
+                SERedisServerConfig = (ctx) => {
+                    var pair = local_func(ctx);
+                    return new ConnectionOption() {
+                        ConnectionIdentifier = pair.Key,
+                        DatabaseIndex = 0,
+                        RedisConnectionOptions = pair.Value
+                    };
+                };
+            }
+            get {
+                if (SERedisServerConfig == null) return null;
+                return (ctx) => {
+                    var opt = SERedisServerConfig(ctx);
+                    return new KeyValuePair<string, ConfigurationOptions>(
+                        opt.ConnectionIdentifier, opt.RedisConnectionOptions);
+                };
+            }
+        }
+
+        /// <summary>
+        /// A delegate for returning a StackExchange.Redis.ConfigurationOptions instance which will dictate
+        ///     to the StackExchange.Redis client what Redis instance to connect to for persisting session data. 
+        ///     Please assign a string key to your connection as well, in case you want to connect to multiple
+        ///     sets of Redis instances.
+        /// </summary>
+        public static Func<HttpContextBase, ConnectionOption> SERedisServerConfig = null;
 
         /// <summary>
         /// Gets or sets a logging delegate that takes as input the server ip and port of the connection used as

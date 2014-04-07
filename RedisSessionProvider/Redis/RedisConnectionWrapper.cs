@@ -105,6 +105,21 @@
         }
 
         /// <summary>
+        /// Initializes a new instance of the RedisConnectionWrapper class, which contains methods for accessing
+        ///     a static concurrentdictionary of already created and open redisconnection instances
+        /// </summary>
+        /// <param name="connOpt">A config class containing the redis options.</param>
+        public RedisConnectionWrapper(ConnectionOption connOpt) {
+            if (connOpt == null || connOpt.RedisConnectionOptions == null) {
+                throw new ConfigurationErrorsException(
+                    "RedisConnectionWrapper cannot be initialized with null ConfigurationOptions property");
+            }
+          this.connData = connOpt.RedisConnectionOptions;
+          this.ConnectionID = connOpt.ConnectionIdentifier;
+          this.DatabaseIndex = connOpt.DatabaseIndex;
+        }
+
+        /// <summary>
         /// Method that returns a StackExchange.Redis.IDatabase object with ip and port number matching
         ///     what was passed into the constructor for this instance of RedisConnectionWrapper
         /// </summary>

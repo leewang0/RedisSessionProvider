@@ -35,11 +35,19 @@
             MvcApplication.redisConfigOpts.Proxy = Proxy.Twemproxy;
 
             // give it to RedisSessionProvider
-            RedisConnectionConfig.GetSERedisServerConfig = (HttpContextBase context) =>
-            {
-                return new KeyValuePair<string,ConfigurationOptions>(
-                    "DefaultConnection", 
-                    MvcApplication.redisConfigOpts);
+            // deprecated old method, but will work 
+            // RedisConnectionConfig.GetSERedisServerConfig = (HttpContextBase context) =>
+            // {
+            //     return new KeyValuePair<string,ConfigurationOptions>(
+            //         "DefaultConnection", 
+            //         MvcApplication.redisConfigOpts);
+            // };
+            RedisConnectionConfig.SERedisServerConfig = (HttpContextBase context) => {
+                return new ConnectionOption() {
+                    ConnectionIdentifier = "DefaultConnection",
+                    DatabaseIndex = 0,
+                    RedisConnectionOptions = MvcApplication.redisConfigOpts
+                };
             };
 
             // deprecated old method, but will work if GetSERedisServerConfig is null
