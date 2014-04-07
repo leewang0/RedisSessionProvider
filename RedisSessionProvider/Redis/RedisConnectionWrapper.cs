@@ -43,6 +43,11 @@
         public string ConnectionID { get; set; }
 
         /// <summary>
+        /// The index of Database to store session.
+        /// </summary>
+        public int DatabaseIndex { get; set; }
+
+        /// <summary>
         /// Initializes a new instance of the RedisConnectionWrapper class, which contains methods for accessing
         ///     a static concurrentdictionary of already created and open RedisConnection instances
         /// </summary>
@@ -77,6 +82,7 @@
                     "{0}_%_{1}",
                     redisParams.ServerAddress,
                     redisParams.ServerPort);
+            this.DatabaseIndex = redisParams.DatabaseIndex;
         }
 
         /// <summary>
@@ -120,7 +126,8 @@
                 }
             }
 
-            return RedisConnectionWrapper.RedisConnections[this.ConnectionID].GetDatabase();
+            return RedisConnectionWrapper.RedisConnections[this.ConnectionID].GetDatabase(
+                this.DatabaseIndex);
         }
         
         /// <summary>

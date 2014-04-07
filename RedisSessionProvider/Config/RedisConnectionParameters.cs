@@ -24,6 +24,7 @@
             this.ServerVersion = "2.6.14";
             this.UseProxy = Proxy.None;
             this.KeepAlive = 5;
+            this.DatabaseIndex = 0;
         }
 
         /// <summary>
@@ -56,6 +57,11 @@
         /// Gets or sets the interval in seconds to make sure the connection is still going
         /// </summary>
         public int KeepAlive { get; set; }
+
+        /// <summary>
+        /// Gets or sets the index of database
+        /// </summary>
+        public int DatabaseIndex { get; set; }
 
         /// <summary>
         /// Makes a StackExchange.Redis.ConfigurationOptions class from the properties of the
