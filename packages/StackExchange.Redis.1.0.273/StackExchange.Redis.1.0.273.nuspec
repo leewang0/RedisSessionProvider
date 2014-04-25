@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
-<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
   <metadata>
     <id>StackExchange.Redis</id>
-    <version>1.0.241</version>
+    <version>1.0.273</version>
     <authors>Stack Exchange inc.,  marc.gravell</authors>
     <owners>Stack Exchange inc.,  marc.gravell</owners>
     <licenseUrl>https://raw.github.com/StackExchange/StackExchange.Redis/master/LICENSE</licenseUrl>
@@ -13,5 +13,13 @@
     <copyright>Stack Exchange inc. 2014</copyright>
     <language>en-US</language>
     <tags>Async Redis NoSQL Client Distributed Cache PubSub Messaging</tags>
+    <dependencies>
+      <group targetFramework=".NETFramework4.0">
+        <dependency id="Microsoft.Bcl" version="1.1.8" />
+        <dependency id="Microsoft.Bcl.Async" version="1.0.168" />
+        <dependency id="Microsoft.Bcl.Build" version="1.0.14" />
+      </group>
+      <group targetFramework=".NETFramework4.5" />
+    </dependencies>
   </metadata>
 </package>

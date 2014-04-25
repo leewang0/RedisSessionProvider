@@ -91,8 +91,21 @@
         /// </summary>
         /// <param name="connIdentifier">Because it is possible to have connections to multiple redis instances, we store
         /// a dictionary of them to reuse. This parameter is used as the key to that dictionary.</param>
-        /// <param name="connOpts">A StackExchange.Redis configuration class containing the redis connection info</param>        
+        /// <param name="connOpts">A StackExchange.Redis configuration class containing the redis connection info</param>
         public RedisConnectionWrapper(string connIdentifier, ConfigurationOptions connOpts)
+            : this(connIdentifier, 0, connOpts)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the RedisConnectionWrapper class, which contains methods for accessing
+        ///     a static concurrentdictionary of already created and open redisconnection instances
+        /// </summary>
+        /// <param name="connIdentifier">Because it is possible to have connections to multiple redis instances, we store
+        /// a dictionary of them to reuse. This parameter is used as the key to that dictionary.</param>
+        /// <param name="dbIndex">The index of the redis database with session information</param>
+        /// <param name="connOpts">A StackExchange.Redis configuration class containing the redis connection info</param>
+        public RedisConnectionWrapper(string connIdentifier, int dbIndex, ConfigurationOptions connOpts)
         {
             if (connOpts == null)
             {
@@ -101,6 +114,7 @@
             }
 
             this.connData = connOpts;
+            this.DatabaseIndex = dbIndex;
             this.ConnectionID = connIdentifier;
         }
 

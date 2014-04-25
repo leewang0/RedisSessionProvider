@@ -78,11 +78,14 @@
             RedisSessionStateItemCollection items =
                 this.SharedSessions.GetSessionForEndRequest(this.SessionRedisHashKey);
 
-            RedisSessionStateStoreProvider.SerializeToRedis(
-                this.RequestContext,
-                items,
-                this.SessionRedisHashKey,
-                RedisSessionConfig.SessionTimeout);
+            if (items != null)
+            {
+                RedisSessionStateStoreProvider.SerializeToRedis(
+                    this.RequestContext,
+                    items,
+                    this.SessionRedisHashKey,
+                    RedisSessionConfig.SessionTimeout);
+            }
         }
 
         #endregion

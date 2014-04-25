@@ -18,6 +18,13 @@
         }
 
         /// <summary>
+        /// A delegate for returning a Tuple of the connection name (for setups with multiple connections),
+        ///     a database index (for redis servers with multiple databases), and a StackExchange.Redis
+        ///     ConfigurationOptions object. This delegate takes precedence over GetSERedisServerConfig
+        /// </summary>
+        public static Func<HttpContextBase, Tuple<string, int, ConfigurationOptions>> GetSERedisServerConfigDbIndex = null;
+
+        /// <summary>
         /// A delegate for returning a StackExchange.Redis.ConfigurationOptions instance which will dictate
         ///     to the StackExchange.Redis client what Redis instance to connect to for persisting session data. 
         ///     Please assign a string key to your connection as well, in case you want to connect to multiple

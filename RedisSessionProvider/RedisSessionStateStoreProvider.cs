@@ -412,7 +412,16 @@
         /// </returns>
         public static RedisConnectionWrapper RedisConnWrapperFromContext(HttpContextBase context)
         {
-            if(RedisConnectionConfig.GetSERedisServerConfig != null)
+            if(RedisConnectionConfig.GetSERedisServerConfigDbIndex != null)
+            {
+                Tuple<string, int, ConfigurationOptions> connData =
+                    RedisConnectionConfig.GetSERedisServerConfigDbIndex(context);
+                return new RedisConnectionWrapper(
+                    connData.Item1,
+                    connData.Item2,
+                    connData.Item3);
+            }
+            else if(RedisConnectionConfig.GetSERedisServerConfig != null)
             {
                 KeyValuePair<string, ConfigurationOptions> connData = 
                     RedisConnectionConfig.GetSERedisServerConfig(context);
