@@ -19,31 +19,48 @@
         /// <param name="context">The context of the current request</param>
         public RedisSessionAccessor(HttpContextBase context)
         {
-            this.RequestContext = context;
-            this.SharedSessions = new LocalSharedSessionDictionary();
-
-            // if we have the session ID
-            if (this.RequestContext.Request.Cookies[RedisSessionConfig.SessionHttpCookieName] != null)
+            try
             {
-                this.SessionRedisHashKey = RedisSessionStateStoreProvider.RedisHashIdFromSessionId(
-                    this.RequestContext,
-                    this.RequestContext.Request.Cookies[RedisSessionConfig.SessionHttpCookieName].Value);
+                this.RequestContext = context;
+                this.SharedSessions = new LocalSharedSessionDictionary();
+
+                // if we have the session ID
+                if (this.RequestContext.Request.Cookies[RedisSessionConfig.SessionHttpCookieName] != null)
+                {
+                    this.SessionRedisHashKey = RedisSessionStateStoreProvider.RedisHashIdFromSessionId(
+                        this.RequestContext,
+                        this.RequestContext.Request.Cookies[RedisSessionConfig.SessionHttpCookieName].Value);
+                }
+
+                if (!string.IsNullOrEmpty(this.SessionRedisHashKey))
+                {
+                    RedisSessionStateItemCollection items =
+                        this.SharedSessions.GetSessionForBeginRequest(
+                            this.SessionRedisHashKey,
+                            (string redisKey) =>
+                            {
+                                return RedisSessionStateStoreProvider.GetItemFromRedis(
+                                    redisKey,
+                                    this.RequestContext,
+                                    RedisSessionConfig.SessionTimeout);
+                            });
+
+                    this.Session = new FakeHttpSessionState(items);
+                }
             }
-
-            if(!string.IsNullOrEmpty(this.SessionRedisHashKey))
+            catch(Exception exc)
             {
-                RedisSessionStateItemCollection items =
-                    this.SharedSessions.GetSessionForBeginRequest(
-                        this.SessionRedisHashKey,
-                        (string redisKey) =>
-                        {
-                            return RedisSessionStateStoreProvider.GetItemFromRedis(
-                                redisKey,
-                                this.RequestContext,
-                                RedisSessionConfig.SessionTimeout);
-                        });
+                if(RedisSessionConfig.RedisSessionAccessorExceptionLoggingDel != null)
+                {
+                    string errMsg = string.Format(
+                        "RedisSessionAccessor unable to get Redis session for id: {0}", 
+                        this.SessionRedisHashKey);
 
-                this.Session = new FakeHttpSessionState(items);
+                    RedisSessionConfig.RedisSessionAccessorExceptionLoggingDel(
+                        context,
+                        errMsg,
+                        exc);
+                }
             }
         }
 

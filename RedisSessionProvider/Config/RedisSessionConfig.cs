@@ -42,6 +42,11 @@
         public static Action<Exception> SessionExceptionLoggingDel { get; set; }
 
         /// <summary>
+        /// A delegate that is fired when RedisSessionAccessor encounters an exception getting a Session
+        /// </summary>
+        public static Action<HttpContextBase, string, Exception> RedisSessionAccessorExceptionLoggingDel { get; set; }
+
+        /// <summary>
         /// A delegate that returns a Redis keyname given an HttpContext and the Session Id cookie value.
         ///     If this is null, the Session Id value will be used directly as the Redis keyname. This may
         ///     be fine if your Redis server is specifically used only for web Sessions within one app.
