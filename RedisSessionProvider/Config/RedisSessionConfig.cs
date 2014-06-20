@@ -8,6 +8,7 @@
     using System.Web;
     using System.Web.Configuration;
     using System.Web.Hosting;
+    using StackExchange.Redis;
 
     /// <summary>
     /// This class contains settings for how the classes that hold the Session behave, after data
@@ -52,6 +53,20 @@
         ///     be fine if your Redis server is specifically used only for web Sessions within one app.
         /// </summary>
         public static Func<HttpContextBase, string, string> RedisKeyFromSessionIdDel { get; set; }
+
+        /// <summary>
+        /// A delegate called whenever RedisSessionProvider or RedisSessionAccessor writes to a field 
+        /// in the session's Redis hash. The delegate is given the current context, 
+        /// the StackExchange.Redis.HashEntry[] values to be changed, and the redis hash key as parameters
+        /// </summary>
+        public static Action<HttpContextBase, HashEntry[], string> RedisWriteFieldDel { get; set; }
+
+        /// <summary>
+        /// A delegate called whenever RedisSessionProvider or RedisSessionAccessor removes a field
+        /// from the session's Redis hash. The delegate is riven the current context, the
+        /// StackExchange.Redis.RedisValue[] keys to be deleted, and the redis hash key as parameters
+        /// </summary>
+        public static Action<HttpContextBase, RedisValue[], string> RedisRemoveFieldDel { get; set; }
 
         /// <summary>
         /// Gets or sets the expected number of threads that will simultaneously try to access a session,

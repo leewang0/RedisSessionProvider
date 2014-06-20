@@ -44,7 +44,9 @@
             { typeof(float), "SysFloat" },
             { typeof(int[]), "SysIntArr" },
             { typeof(string[]), "SysStringArr" },
-            { typeof(DateTime), "SysDateTime" }
+            { typeof(DateTime), "SysDateTime" },
+            { typeof(bool), "SysBool" },
+            { typeof(byte), "SysByte" }
         };
 
         /// <summary>
@@ -60,7 +62,9 @@
             { "SysFloat", typeof(float) },
             { "SysIntArr", typeof(int[]) },
             { "SysStringArr", typeof(string[]) },
-            { "SysDateTime", typeof(DateTime) }
+            { "SysDateTime", typeof(DateTime) },
+            { "SysBool", typeof(bool) },
+            { "SysByte", typeof(byte) }
         };
 
         // ADO.NET serialization is difficult because of the recursive nature of the datastructures. In order

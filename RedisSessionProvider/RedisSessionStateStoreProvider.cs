@@ -362,6 +362,8 @@
             RedisConnectionWrapper rConnWrap = RedisSessionStateStoreProvider.RedisConnWrapperFromContext(
                 context);
 
+            // Determine if we are adding or removing keys, separate them into their own lists
+            //      note that redisItems.GetChangedObjectsEnumerator contains complex logic
             foreach (KeyValuePair<string, string> changedObj in
                 redisItems.GetChangedObjectsEnumerator())
             {
@@ -380,6 +382,7 @@
 
             IDatabase redisConn = rConnWrap.GetConnection();
 
+            // always refresh the timeout of the session hash
             redisConn.KeyExpire(
                 currentRedisHashId,
                 expirationTimeout,
@@ -387,17 +390,37 @@
 
             if (setItems.Count > 0)
             {
+                HashEntry[] writeItems = setItems.ToArray();
                 redisConn.HashSet(
                     currentRedisHashId,
-                    setItems.ToArray(),
+                    writeItems,
                     CommandFlags.FireAndForget);
+
+                // call appropriate delegate if set for changing keys
+                if(RedisSessionConfig.RedisWriteFieldDel != null)
+                {
+                    RedisSessionConfig.RedisWriteFieldDel(
+                        context, 
+                        writeItems, 
+                        currentRedisHashId);
+                }
             }
             if (delItems != null && delItems.Count > 0)
             {
+                RedisValue[] removeItems = delItems.ToArray();
                 redisConn.HashDelete(
                     currentRedisHashId,
-                    delItems.ToArray(),
+                    removeItems,
                     CommandFlags.FireAndForget);
+
+                // call appropriate delegate if set for removing keys
+                if(RedisSessionConfig.RedisRemoveFieldDel != null)
+                {
+                    RedisSessionConfig.RedisRemoveFieldDel(
+                        context,
+                        removeItems,
+                        currentRedisHashId);
+                }
             }
         }
 
