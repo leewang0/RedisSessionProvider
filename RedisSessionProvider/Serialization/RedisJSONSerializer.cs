@@ -23,6 +23,13 @@
     public class RedisJSONSerializer : IRedisSerializer
     {
         /// <summary>
+        /// Shared concurrent dictionary to optimize type-safe deserialization from json, since
+        /// we store the type info in the string
+        /// </summary>
+        private static ConcurrentDictionary<string, Type> TypeCache = 
+            new ConcurrentDictionary<string, Type>();
+
+        /// <summary>
         /// Format string used to write type information into the Redis entry before the JSON data
         /// </summary>
         protected string typeInfoPattern = "|!a_{0}_a!|";
@@ -168,9 +175,33 @@
                     {
                         typeData = this.TypeInfoShortcutsDsrlz[typeInfoString];
                     }
+                    else if(RedisJSONSerializer.TypeCache.TryGetValue(typeInfoString, out typeData))
+                    {
+                        // great, we have it in cache
+                    }
                     else
                     {
                         typeData = JsonConvert.DeserializeObject<Type>(typeInfoString);
+
+                        #region tryCacheTypeInfo
+                        try
+                        {
+                            // we should cache it for future use
+                            TypeCache.AddOrUpdate(
+                                typeInfoString,
+                                typeData,
+                                (str, existing) => typeData); // replace with our type data if already exists
+                        }
+                        catch(Exception cacheExc)
+                        {
+                            RedisSerializationConfig.SerializerExceptionLoggingDel(
+                                new TypeCacheException(
+                                    string.Format(
+                                        "Unable to cache type info for raw value '{0}' during deserialization",
+                                        objRaw), 
+                                    cacheExc));
+                        }
+                        #endregion
                     }
 
                     return JsonConvert.DeserializeObject(
@@ -275,6 +306,14 @@
                 string objInfo = JsonConvert.SerializeObject(origObj);
 
                 return string.Format(this.typeInfoPattern, typeInfo) + objInfo;
+            }
+        }
+
+        public class TypeCacheException : Exception
+        {
+            public TypeCacheException(string msg, Exception inner) 
+                : base(msg, inner)
+            {
             }
         }
     }
