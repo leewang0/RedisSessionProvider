@@ -11,6 +11,18 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
     <releaseNotes>
+RedisSessionProvider is a class library for persisting ASP.NET Session data to a Redis server. It is
+non-locking, meaning that multiple request threads can access the same Session object if multiple
+requests come in with the same Session ID. This allows for parallel requests but can result in race
+conditions if used improperly. 
+
+Please visit the project page at https://github.com/welegan/RedisSessionProvider for a more detailed 
+explanation of this and other behaviors.
+
+=================== Version Changelog ===================
+
+V1.2.6: RedisSessionAccessor's Session object now implements HttpSessionStateBase.SessionID
+
 V1.2.5: RedisSessionConfig now has a RedisWriteFieldDel and a RedisRemoveFieldDel for cases where you want
 to perform an action any time a hash key is changed or removed. Minor improvement to RedisJSONSerializer that
 will save some space in Redis hash if you store lots of bools or bytes in session

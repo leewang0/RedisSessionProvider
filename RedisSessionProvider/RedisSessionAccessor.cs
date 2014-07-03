@@ -45,7 +45,9 @@
                                     RedisSessionConfig.SessionTimeout);
                             });
 
-                    this.Session = new FakeHttpSessionState(items);
+                    this.Session = new FakeHttpSessionState(
+                        items, 
+                        this.RequestContext.Request.Cookies[RedisSessionConfig.SessionHttpCookieName].Value);
                 }
             }
             catch(Exception exc)
@@ -109,9 +111,12 @@
 
         public class FakeHttpSessionState : HttpSessionStateBase
         {
-            public FakeHttpSessionState(ISessionStateItemCollection items)
+            private string sessionID;
+
+            public FakeHttpSessionState(ISessionStateItemCollection items, string sessID)
             {
                 this.Items = items;
+                this.sessionID = sessID;
             }
 
             protected ISessionStateItemCollection Items { get; set; }
@@ -151,6 +156,19 @@
                 get
                 {
                     return this.Items.Count;
+                }
+            }
+
+            /// <summary>
+            /// Gets the SessionID associated with the current Session object. Note that this is
+            ///     the raw Session ID value, not the Redis Key. In order to get that, run the
+            ///     result through RedisSessionConfig.RedisKeyFromSessionIdDel
+            /// </summary>
+            public override string SessionID
+            {
+                get
+                {
+                    return this.sessionID;   
                 }
             }
         }
