@@ -382,12 +382,6 @@
 
             IDatabase redisConn = rConnWrap.GetConnection();
 
-            // always refresh the timeout of the session hash
-            redisConn.KeyExpire(
-                currentRedisHashId,
-                expirationTimeout,
-                CommandFlags.FireAndForget);
-
             if (setItems.Count > 0)
             {
                 HashEntry[] writeItems = setItems.ToArray();
@@ -422,6 +416,12 @@
                         currentRedisHashId);
                 }
             }
+
+            // always refresh the timeout of the session hash
+            redisConn.KeyExpire(
+                currentRedisHashId,
+                expirationTimeout,
+                CommandFlags.FireAndForget);
         }
 
         /// <summary>
