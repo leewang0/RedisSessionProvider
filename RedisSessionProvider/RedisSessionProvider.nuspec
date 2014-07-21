@@ -21,6 +21,10 @@ explanation of this and other behaviors.
 
 =================== Version Changelog ===================
 
+V1.2.7: Bug Fixes: values in Session_Start global asax events were not being written to Redis, they should now
+correctly persist. Redis TTL expiration times on all hashes are now always set (first-load sometimes did not
+set them)
+
 V1.2.6: RedisSessionAccessor's Session object now implements HttpSessionStateBase.SessionID
 
 V1.2.5: RedisSessionConfig now has a RedisWriteFieldDel and a RedisRemoveFieldDel for cases where you want
