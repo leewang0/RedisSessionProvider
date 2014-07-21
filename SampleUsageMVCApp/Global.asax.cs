@@ -71,5 +71,10 @@
                     count);
             };
         }
+
+        protected void Session_Start(Object sender, EventArgs e)
+        {
+            Session["onStart"] = true;
+        }
     }
 }

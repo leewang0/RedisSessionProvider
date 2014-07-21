@@ -285,6 +285,15 @@
                 RedisSessionStateItemCollection redisItems = 
                     sharedSessDict.GetSessionForEndRequest(currentRedisHashId);
 
+                // we were unable to pull it from shared cache, meaning either this is the first request or
+                //      something went wrong with the local cache. We still have all the parts needed to write
+                //      to redis, however, by looking at SessionStateStoreData passed in from the Session module
+                //      and the current hash key provided by the id parameter.
+                if (redisItems == null)
+                {
+                    redisItems = (RedisSessionStateItemCollection)item.Items;
+                }
+
                 if (redisItems != null)
                 {
                     RedisSessionStateStoreProvider.SerializeToRedis(
