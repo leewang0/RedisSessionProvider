@@ -21,6 +21,8 @@ explanation of this and other behaviors.
 
 =================== Version Changelog ===================
 
+V1.2.8: Updated Json.NET dependency to 6.03, StackExchange.Redis to 1.0.322
+
 V1.2.7: Bug Fixes: values in Session_Start global asax events were not being written to Redis, they should now
 correctly persist. Redis TTL expiration times on all hashes are now always set (first-load sometimes did not
 set them)

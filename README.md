@@ -7,25 +7,25 @@ to efficiently persist data to a [Redis](http://redis.io) server.
 To install via NuGet, please go to the NuGet 
 [RedisSessionProvider package](https://www.nuget.org/packages/RedisSessionProvider) page
 
-## Humongous Disclaimer, Please Read
+## Why a non-locking session is important
 
 In case you don't know, the default ASP.NET Session State behavior has a [major flaw](http://goo.gl/YEOVJV). Perhaps
-it made sense in the early 2000's when AJAX was a nascent tool, but **locking requests based on Session ID** does not 
+it made sense in the early 2000's when AJAX was rare, but **locking requests based on Session ID** does not 
 sound like a very good idea to me. 
 
 I.E. If you have multiple requests with the same session Id at the same time, the first will run and the others will 
 check in 0.5 second intervals until the first request is complete, then the next one will go, and so on. This is 
-great for maintaining correctness of the Session, but (probably) horrible for app responsiveness when there's a 
-lot of client to server requests happening at once (most things nowadays).
+great for maintaining correctness of the Session, but horrible for app responsiveness when there's a 
+lot of client to server requests happening at once.
 
-RedisSessionProvider does NO LOCKING WHATSOEVER on the Session. In fact it goes to great lengths to ensure that you
+RedisSessionProvider never locks the Session. In fact it goes to great lengths to ensure that you
 can have as broken a Session as you want. Starting in Version 1.1, however, RedisSessionProvider includes behavior
 to mitigate the impact of this breaking change from the default .NET Session implementation. Specifically, in V1.0
-RedisSessionProvider returned a distinct Dictionary&lt;string, object&gt; instance for each request thread. This
+RedisSessionProvider returned a distinct `Dictionary<string, object>` instance for each request thread. This
 would be fine if each request only operated on separate Session keys, since only the changed objects would be
 written back to Redis. However, if two simultaneous requests changed the same key, the second one to finish would
 be what was ultimately persisted in Redis. To counter this behavior for reference types, we added a middle layer in
-V1.1 that returns the same ConcurrentDictionary&lt;string, object&gt; to all requests that ask for the same Session.
+V1.1 that returns the same `ConcurrentDictionary<string, object>` instance to all requests that ask for the same Session.
 The end result is that multiple requests that do the following:
 
     static object locker = new object();
@@ -51,19 +51,20 @@ class, but to get correct behavior with a multi-thread accessible Session you wi
 of the highly parallel nature of serving your pages. If speed is your primary concern, and you want to remove
 the bottleneck of Session locking, then RedisSessionProvider is for you. If you are writing an app that does
 not need that, then use one of the other Redis providers out there.
-[RedisSessionStateStore](https://github.com/TheCloudlessSky/Harbour.RedisSessionStateStore/tree/master/src)
+[RedisSessionStateStore](https://github.com/TheCloudlessSky/Harbour.RedisSessionStateStore)
 seems to be the most popular.
 
 ## Key features:
 
 * .NET 4.5 library for storing Session data in Redis
-* ASP.NET web Sessions are stored as [Redis hashes](http://redis.io/commands#hash), with each Session\["someKey"\]
-translating to "someKey" in the Redis hash
+* ASP.NET web Sessions are stored as [Redis hashes](http://redis.io/commands#hash), with each `Session["someKey"]`
+persisting to a field named `"someKey"` in the Redis hash
 * only performs SET or DEL operations back to Redis if the value has changed
-* batches all SET and DEL operations when the Session is released (at the end of the request)
+* batches all SET and DEL operations when the Session is released at the end of the request
 * uses the [StackExchange.Redis](https://github.com/StackExchange/StackExchange.Redis) redis client
 * many configurable options for the particulars of using your redis instance(s), see the options section below
 * JSON serialization format for human-readable Session contents, using Json.NET
+* configuration options for writing your own serializers
 * production-tested on [DateHookup](http://www.datehookup.com) a website that serves 25 million page visits (and
 many more total web requests) a day
 
@@ -112,17 +113,27 @@ in your application (Global.asax application_start is a good place for that):
 
 	using RedisSessionProvider.Config;
 	using StackExchange.Redis
-	...
 
-	// assign your local Redis instance address, can be static
-    Application.redisConfigOpts = ConfigurationOptions.Parse("{ip}:{port}");
+	// your application class name may differ but the name or base class should not matter for our purposes
+	public class MvcApplication : System.Web.HttpApplication
+	{
+		public static ConfigurationOptions redisConfigOpts { get; set; }
+
+		...
+
+		protected void Application_Start()
+		{
+			// assign your local Redis instance address, can be static
+			Application.redisConfigOpts = ConfigurationOptions.Parse("{ip}:{port}");
 	
-	// pass it to RedisSessionProvider configuration class
-	RedisConnectionConfig.GetSERedisServerConfig = (HttpContextBase context) => {
-		return new KeyValuePair<string,ConfigurationOptions>(
-			"DefaultConnection",				// if you use multiple configuration objects, please make the keys unique
-			Application.redisConfigOpts);
-	};
+			// pass it to RedisSessionProvider configuration class
+			RedisConnectionConfig.GetSERedisServerConfig = (HttpContextBase context) => {
+				return new KeyValuePair<string,ConfigurationOptions>(
+					"DefaultConnection",				// if you use multiple configuration objects, please make the keys unique
+					Application.redisConfigOpts);
+			};
+		}
+	}
 
 Prior to V1.2.1, we used a separate configuration class than StackExchange.Redis. The delegate example for that is:
 
@@ -160,10 +171,31 @@ for its use is this short example:
 
     public class APIController ...
 	{
+		// getting an HttpContext in WebAPI is weird
+		public HttpContextBase MyHttpContextBase
+        {
+            get
+            {
+                object context;
+                if (this.Request != null && this.Request.Properties.TryGetValue(
+                    "MS_HttpContext", out context))
+                {
+                    return ((HttpContextWrapper)context);
+                }
+                else if (HttpContext.Current != null)
+                {
+                    return new HttpContextWrapper(HttpContext.Current);
+                }
+
+                return null;
+            }
+        }
+
+		// some public WebAPI method
 		public SomeObject PostMethod(SomeParams parmesan)
 		{
 			using(var sessAcc = new RedisSessionAccessor(
-				new HttpContextWrapper(HttpContext.Current)))
+				new HttpContextWrapper(MyHttpContextBase)))
 			{
 				// within this using block, you now have access to the same Session as web pages, at the
 				//		cost of possibly reading from Redis in the constructor of RedisSessionAccessor.
@@ -179,8 +211,11 @@ for its use is this short example:
 		}
 	}
 
-This is purely for flexibility and convenience. There are plenty of flame wars to be had over whether or not
-this violates RESTful webservice design practices.
+There are plenty of flame wars to be had over whether or not this violates REST-ful webservice design practices.
+I could care less, the accessor is just there for convenience if you need it. The `Session` property that it
+exposes inherits from `SessionStateBase`, but it does not implement all of its methods. See the 
+[FakeHttpSessionState class definition](https://github.com/welegan/RedisSessionProvider/blob/master/RedisSessionProvider/RedisSessionAccessor.cs)
+for details.
 
 ### More configuration options
 
@@ -203,9 +238,10 @@ A lambda function you can specify which will log every 30 seconds the number of 
 
 This is an instance of a class of type IRedisSerializer, which you can replace with your own implementation if
 you have a need to serialize to something other than JSON within Redis. The default implementation is called
-RedisSessionProvider.Serialization.RedisJSONSerializer. Alternative serializers will be made available as they 
+[RedisSessionProvider.Serialization.RedisJSONSerializer](https://github.com/welegan/RedisSessionProvider/blob/master/RedisSessionProvider/Serialization/RedisJSONSerializer.cs).
+Alternative serializers will be made available as they 
 are written. The method signatures in IRedisSerializer contain detailed descriptions of each method's purpose 
-if you do choose to roll your own.
+if you do choose to roll your own. Please consider adding a pull request if you do.
 
 	RedisSerializationConfig.SerializerExceptionLoggingDel
 
@@ -213,14 +249,14 @@ This logging lambda function is used within try-catch blocks of the RedisJSONSer
 detailed exception messages if anything is going wrong at the serialization level. Hopefully (and likely) you 
 won't need it. Personally, I had to log all serializations once upon a time because of a legacy code block
 storing DataTable instances in Session. Don't do that, they aren't meant to be serialized easily, though
-we do have a workaround in place to handle it within RedisJSONSerializer. But much don't do it.
+we do have a workaround in place to handle it within RedisJSONSerializer. But please don't do it.
 
 #### RedisSessionConfig additional properties
 
 	RedisSessionConfig.SessionExceptionLoggingDel
 
 This lambda function is used in the top-level RedisSessionProvider.RedisSessionStateStoreProvider class to
-log all exceptions that slip through after serialization, or for other causes. If something is just not 
+log all exceptions that bubble up through all the other classes. If something is just not 
 working, adding this method may help you pinpoint the issue.
 
 	RedisSessionConfig.RedisKeyFromSessionIdDel
