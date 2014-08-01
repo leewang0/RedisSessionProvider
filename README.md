@@ -86,7 +86,7 @@ RedisSessionProvider, which allows for safer multi-threaded Session access (agai
 
 ## Setting up RedisSessionProvider
 
-This assumes you have a running (Redis server)[http://redis.io/] that is at an address accessible by your web machines.
+This assumes you have a running [Redis server](http://redis.io/) that is at an address accessible by your web machines.
 RedisSessionProvider has been actively used on [DateHookup](http://www.datehookup.com) since March 2013 on multiple 
 webservers hitting Redis 2.6.14 instances, but has not been tested with earlier or later versions.
 
