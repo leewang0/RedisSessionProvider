@@ -93,7 +93,7 @@
         /// a dictionary of them to reuse. This parameter is used as the key to that dictionary.</param>
         /// <param name="connOpts">A StackExchange.Redis configuration class containing the redis connection info</param>
         public RedisConnectionWrapper(string connIdentifier, ConfigurationOptions connOpts)
-            : this(connIdentifier, 0, connOpts)
+            : this(connIdentifier, connOpts.DefaultDatabase ?? 0, connOpts)
         {
         }
 
