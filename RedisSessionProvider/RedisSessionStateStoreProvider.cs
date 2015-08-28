@@ -184,7 +184,10 @@
             lockAge = new TimeSpan(0);
             lockId = null;
             actions = SessionStateActions.None;
-
+            if (id == null)
+            {
+                return null;
+            }
             try
             {
                 string parsedRedisHashId = RedisSessionStateStoreProvider.RedisHashIdFromSessionId(
