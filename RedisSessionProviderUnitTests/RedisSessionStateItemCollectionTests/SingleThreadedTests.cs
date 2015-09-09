@@ -97,18 +97,20 @@
         [Test]
         public void RedisItemsEnumeratorTest()
         {
-            foreach(KeyValuePair<string, object> val in this.items)
+            foreach(string key in this.items)
             {
-                Assert.Contains(val.Value, new string[] { "x", "y", "z" });
+                Assert.Contains(key, new string[] { "a", "b", "c" });
+                Assert.Contains(this.items[key], new string[] { "x", "y", "z" });
             }
 
             this.items["something"] = "a thing";
             this.items["foo"] = "bar";
             this.items["lucas"] = "uses venmo";
 
-            foreach (KeyValuePair<string, object> val in this.items)
+            foreach (string key in this.items)
             {
-                Assert.Contains(val.Value, new string[] { "x", "y", "z", "a thing", "bar", "uses venmo" });
+                Assert.Contains(key, new string[] { "a", "b", "c", "something", "foo", "lucas" });
+                Assert.Contains(this.items[key], new string[] { "x", "y", "z", "a thing", "bar", "uses venmo" });
             }
         }
 
