@@ -353,23 +353,14 @@
 
         public IEnumerator GetEnumerator()
         {
-            // we are going to return the default enumerator implementation of ConcurrentDictionary, but
-            //      there is one snafu. The keys that have not been read yet are of type
-            //      NotYetDeserializedPlaceholderValue, we need to deserialize them now.
+            // we are going to return the enumerator with keys, because
+            //      default asp.net implementation of ISessionStateImemCollection returns an enumerator that can be used to read all the key names in the collection.
+            //      The legacy asp.net code (e.g. TraceContext) requires that this enumerator was an enumerator by keys.
             lock (this.enumLock)
             {
-                foreach(KeyValuePair<string, object> itm in this.Items)
-                {
-                    if(itm.Value is NotYetDeserializedPlaceholderValue)
-                    {
-                        // deserialize the value
-                        this.MemoizedDeserializeGet(itm.Key);
-                    }
-                }
-
                 try
                 {
-                    return this.Items.GetEnumerator();
+                    return this.Items.Keys.GetEnumerator();
                 }
                 catch (Exception exc)
                 {
@@ -380,7 +371,7 @@
                 }
             }
 
-            return new ConcurrentDictionary<string, object>().GetEnumerator();
+            return Enumerable.Empty<string>().GetEnumerator();
         }
 
         #endregion
