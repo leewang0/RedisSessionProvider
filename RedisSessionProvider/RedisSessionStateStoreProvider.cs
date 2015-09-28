@@ -186,7 +186,7 @@
             actions = SessionStateActions.None;
             if (id == null)
             {
-                return null;
+                return this.CreateNewStoreData(context, Convert.ToInt32(this.SessionTimeout.TotalMinutes));
             }
             try
             {
