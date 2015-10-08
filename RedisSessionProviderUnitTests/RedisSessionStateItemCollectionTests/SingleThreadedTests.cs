@@ -40,6 +40,16 @@
             Assert.AreEqual("z", (string)this.items["c"]);
         }
 
+
+        [Test]
+        public void RedisItemsCollectionCaseInsensitiveAccessTest()
+        {
+            Assert.AreEqual("x", (string)this.items["A"]);
+            Assert.AreEqual("y", (string)this.items["B"]);
+            Assert.AreEqual("z", (string)this.items["C"]);
+        }
+
+
         [Test]
         public void RedisItemsCollectionAddTest()
         {
