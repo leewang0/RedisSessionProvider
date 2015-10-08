@@ -82,8 +82,9 @@
                 numItems = redisHashData.Count;
             }
 
-            this.Items = new ConcurrentDictionary<string, object>(concLevel, numItems);
-            this.SerializedRawData = new ConcurrentDictionary<string, string>();
+            //-- LIBERA - MDEARMAN - 2015-10-08 - ITS 115318 - To match ASP.NET behavior, dictionaries should match keys case insensitively
+            this.Items = new ConcurrentDictionary<string, object>(concLevel, numItems, StringComparer.InvariantCultureIgnoreCase);
+            this.SerializedRawData = new ConcurrentDictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
             if (redisHashData != null)
             {
                 foreach (var sessDataEntry in redisHashData)
@@ -101,7 +102,8 @@
                 }
             }
 
-            this.ChangedKeysDict = new ConcurrentDictionary<string, ActionAndValue>();
+            //-- LIBERA - MDEARMAN - 2015-10-08 - ITS 115318 - To match ASP.NET behavior, dictionaries should match keys case insensitively
+            this.ChangedKeysDict = new ConcurrentDictionary<string, ActionAndValue>(StringComparer.InvariantCultureIgnoreCase);
 
             if (byteDataTotal != 0 && !string.IsNullOrEmpty(redisConnName) &&
                 RedisConnectionConfig.LogRedisSessionSize != null)
@@ -141,8 +143,9 @@
                 numItems = redisHashData.Length;
             }
 
-            this.Items = new ConcurrentDictionary<string, object>(concLevel, numItems);
-            this.SerializedRawData = new ConcurrentDictionary<string, string>(concLevel, numItems);
+            //-- LIBERA - MDEARMAN - 2015-10-08 - ITS 115318 - To match ASP.NET behavior, dictionaries should match keys case insensitively
+            this.Items = new ConcurrentDictionary<string, object>(concLevel, numItems, StringComparer.InvariantCultureIgnoreCase);
+            this.SerializedRawData = new ConcurrentDictionary<string, string>(concLevel, numItems, StringComparer.InvariantCultureIgnoreCase);
             if (redisHashData != null)
             {
                 foreach (var sessDataEntry in redisHashData)
@@ -163,7 +166,8 @@
                 }
             }
 
-            this.ChangedKeysDict = new ConcurrentDictionary<string, ActionAndValue>();
+            //-- LIBERA - MDEARMAN - 2015-10-08 - ITS 115318 - To match ASP.NET behavior, dictionaries should match keys case insensitively
+            this.ChangedKeysDict = new ConcurrentDictionary<string, ActionAndValue>(StringComparer.InvariantCultureIgnoreCase);
 
             if (byteDataTotal != 0 && !string.IsNullOrEmpty(redisConnName) &&
                 RedisConnectionConfig.LogRedisSessionSize != null)
@@ -380,7 +384,8 @@
                 }
             }
 
-            return new ConcurrentDictionary<string, object>().GetEnumerator();
+            //-- LIBERA - MDEARMAN - 2015-10-08 - ITS 115318 - To match ASP.NET behavior, dictionaries should match keys case insensitively
+            return new ConcurrentDictionary<string, object>(StringComparer.InvariantCultureIgnoreCase).GetEnumerator();
         }
 
         #endregion
