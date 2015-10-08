@@ -82,7 +82,7 @@
                 numItems = redisHashData.Count;
             }
 
-            //-- LIBERA - MDEARMAN - 2015-10-08 - ITS 115318 - To match ASP.NET behavior, dictionaries should match keys case insensitively
+            // To match ASP.NET behavior, dictionaries should match keys case insensitively
             this.Items = new ConcurrentDictionary<string, object>(concLevel, numItems, StringComparer.InvariantCultureIgnoreCase);
             this.SerializedRawData = new ConcurrentDictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
             if (redisHashData != null)
@@ -102,7 +102,7 @@
                 }
             }
 
-            //-- LIBERA - MDEARMAN - 2015-10-08 - ITS 115318 - To match ASP.NET behavior, dictionaries should match keys case insensitively
+            // To match ASP.NET behavior, dictionaries should match keys case insensitively
             this.ChangedKeysDict = new ConcurrentDictionary<string, ActionAndValue>(StringComparer.InvariantCultureIgnoreCase);
 
             if (byteDataTotal != 0 && !string.IsNullOrEmpty(redisConnName) &&
@@ -143,7 +143,7 @@
                 numItems = redisHashData.Length;
             }
 
-            //-- LIBERA - MDEARMAN - 2015-10-08 - ITS 115318 - To match ASP.NET behavior, dictionaries should match keys case insensitively
+            // To match ASP.NET behavior, dictionaries should match keys case insensitively
             this.Items = new ConcurrentDictionary<string, object>(concLevel, numItems, StringComparer.InvariantCultureIgnoreCase);
             this.SerializedRawData = new ConcurrentDictionary<string, string>(concLevel, numItems, StringComparer.InvariantCultureIgnoreCase);
             if (redisHashData != null)
@@ -166,7 +166,7 @@
                 }
             }
 
-            //-- LIBERA - MDEARMAN - 2015-10-08 - ITS 115318 - To match ASP.NET behavior, dictionaries should match keys case insensitively
+            // To match ASP.NET behavior, dictionaries should match keys case insensitively
             this.ChangedKeysDict = new ConcurrentDictionary<string, ActionAndValue>(StringComparer.InvariantCultureIgnoreCase);
 
             if (byteDataTotal != 0 && !string.IsNullOrEmpty(redisConnName) &&
@@ -384,7 +384,7 @@
                 }
             }
 
-            //-- LIBERA - MDEARMAN - 2015-10-08 - ITS 115318 - To match ASP.NET behavior, dictionaries should match keys case insensitively
+            // To match ASP.NET behavior, dictionaries should match keys case insensitively
             return new ConcurrentDictionary<string, object>(StringComparer.InvariantCultureIgnoreCase).GetEnumerator();
         }
 

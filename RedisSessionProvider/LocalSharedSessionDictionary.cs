@@ -22,7 +22,7 @@
     /// </summary>
     public class LocalSharedSessionDictionary
     {
-        //-- LIBERA - MDEARMAN - 2015-10-08 - ITS 115318 - To match ASP.NET behavior, dictionaries should match keys case insensitively
+        // To match ASP.NET behavior, dictionaries should match keys case insensitively
         private static ConcurrentDictionary<string, SessionAndRefCount> localCache =
             new ConcurrentDictionary<string, SessionAndRefCount>(StringComparer.InvariantCultureIgnoreCase);
 
