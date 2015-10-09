@@ -22,8 +22,9 @@
     /// </summary>
     public class LocalSharedSessionDictionary
     {
+        // To match ASP.NET behavior, dictionaries should match keys case insensitively
         private static ConcurrentDictionary<string, SessionAndRefCount> localCache =
-            new ConcurrentDictionary<string, SessionAndRefCount>();
+            new ConcurrentDictionary<string, SessionAndRefCount>(StringComparer.InvariantCultureIgnoreCase);
 
         private static SysTimer cacheFreshnessTimer;
 
