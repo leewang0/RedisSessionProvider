@@ -73,7 +73,7 @@ V1.0.*: Initial Release, see https://github.com/welegan/RedisSessionProvider for
     <copyright>Copyright 2014</copyright>
     <tags>SessionState, Session, SessionProvider, Redis</tags>
     <dependencies>
-      <dependency id="StackExchange.Redis" version="1.0.219" />
+      <dependency id="StackExchange.Redis.StrongName" version="1.0.488" />
       <dependency id="Newtonsoft.Json" version="6.0.1" />
     </dependencies>
   </metadata>
