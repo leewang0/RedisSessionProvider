@@ -572,14 +572,16 @@
                             //      because it will be removed by the Session provider once it reads from the
                             //      enumerator we are returning
                             string remSerVal;
-                            if(this.SerializedRawData.TryRemove(changeData.Key, out remSerVal))
-                            {
-                                // null means delete to the serializer, perhaps change this in the future
-                                changedObjs.Add(
-                                    new KeyValuePair<string, string>(
-                                        changeData.Key,
-                                        null));
-                            }
+                            this.SerializedRawData.TryRemove(changeData.Key, out remSerVal);
+
+                            // Regardless of if SerializedRawData found and removed the key, mark this as deleted
+                            //      to handle when Clear() is called, which clears all SerializedRawData immediately
+
+                            // null means delete to the serializer, perhaps change this in the future
+                            changedObjs.Add(
+                                new KeyValuePair<string, string>(
+                                    changeData.Key,
+                                    null));
                         }
                     }
 
