@@ -36,6 +36,13 @@
         /// </summary>
         private ConfigurationOptions connData;
 
+        //Redis High Availability (Cluster/Sentinel) Feature
+
+        /// <summary>
+        /// Gets or sets the StackExchanage.Redis.ConnectionMultiplexer to use when connecting to a redis server
+        /// </summary>
+        private ConnectionMultiplexer _connection;
+
         /// <summary>
         /// A string identifier for the connection, which will be used as the connection's key in the
         ///     this.RedisConnections dictionary.
@@ -118,6 +125,21 @@
             this.ConnectionID = connIdentifier;
         }
 
+        //Redis High Availability (Cluster/Sentinel) Feature
+
+        /// <summary>
+        /// Initializes a new instance of the RedisConnectionWrapper class, which contains methods for accessing
+        ///     a static concurrentdictionary of already created and open redis connection instances
+        /// </summary>
+        /// <param name="connIdentifier">Because it is possible to have connections to multiple redis instances, we store
+        /// a dictionary of them to reuse. This parameter is used as the key to that dictionary.</param>
+        /// <param name="connection">A StackExchange.Redis.ConnectionMultiplexer instance to interact with Redis</param>
+        public RedisConnectionWrapper(string connIdentifier, ConnectionMultiplexer connection)
+        {
+            this.ConnectionID = connIdentifier;
+            this._connection = connection;
+        }
+
         /// <summary>
         /// Method that returns a StackExchange.Redis.IDatabase object with ip and port number matching
         ///     what was passed into the constructor for this instance of RedisConnectionWrapper
@@ -132,10 +154,21 @@
                 {
                     if (!RedisConnectionWrapper.RedisConnections.ContainsKey(this.ConnectionID))
                     {
-                        RedisConnectionWrapper.RedisConnections.Add(
-                            this.ConnectionID,
-                            ConnectionMultiplexer.Connect(
-                                this.connData));
+                        //Redis High Availability (Cluster/Sentinel) Feature
+
+                        //If _connection wasn't null, it means that the application has passed in
+                        //an existing ConnectionMultiplexer instance and RedisConnectionConfig is
+                        //of type GetSERedisServerConnection
+                        if (this._connection != null)
+                        {
+                            RedisConnectionWrapper.RedisConnections.Add(
+                                this.ConnectionID, this._connection);
+                        }
+                        else
+                        {
+                            RedisConnectionWrapper.RedisConnections.Add(
+                                this.ConnectionID, ConnectionMultiplexer.Connect(this.connData));
+                        }
                     }
                 }
             }

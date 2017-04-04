@@ -471,6 +471,13 @@
                     RedisConnectionConfig.GetRedisServerAddress(context));
             }
 #pragma warning restore 0618
+            //Redis High Availability (Cluster/Sentinel) Feature
+            else if (RedisConnectionConfig.GetSERedisServerConnection != null)
+            {
+                KeyValuePair<string, ConnectionMultiplexer> connData =
+                   RedisConnectionConfig.GetSERedisServerConnection(context);
+                return new RedisConnectionWrapper(connData.Key, connData.Value);
+            }
 
             throw new ConfigurationErrorsException(
                 "RedisSessionProvider.Config.RedisConnectionWrapper.GetSERedisServerConfig delegate not set " +

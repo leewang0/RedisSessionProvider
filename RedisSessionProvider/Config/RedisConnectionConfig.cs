@@ -32,6 +32,16 @@
         /// </summary>
         public static Func<HttpContextBase, KeyValuePair<string, ConfigurationOptions>> GetSERedisServerConfig = null;
 
+        //Redis High Availability (Cluster/Sentinel) Feature
+
+        /// <summary>
+        /// A delegate for returning a StackExchange.Redis.ConnectionMultiplexer instance which will allow
+        ///     application to pass an existing ConnectionMultiplexer for persisting session data. 
+        ///     Please assign a string key to your connection as well, in case you want to connect to multiple
+        ///     sets of Redis instances.
+        /// </summary>
+        public static Func<HttpContextBase, KeyValuePair<string, ConnectionMultiplexer>> GetSERedisServerConnection = null;
+
         /// <summary>
         /// Gets or sets a logging delegate that takes as input the server ip and port of the connection used as
         ///     a string and the number of total redis messages to it as a long
